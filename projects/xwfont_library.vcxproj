@@ -175,7 +175,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -192,7 +192,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -211,7 +211,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -228,7 +228,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -249,7 +249,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -270,7 +270,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -293,7 +293,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -314,7 +314,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>..\third-party\freetype-2.8\include;..\third-party\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -334,7 +334,17 @@
     <ClInclude Include="../src/xwfont_api.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\xwfont_library\dllmain.cpp" />
+    <ClCompile Include="../src/xwfont_library\dllmain.cpp" />
+    <ClCompile Include="../src/test.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release [Shared]|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release [Shared]|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="../src/xwfont_api.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

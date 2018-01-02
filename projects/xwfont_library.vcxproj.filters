@@ -23,9 +23,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="../src/xwfont_library\dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="../src/test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="../src/xwfont_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\xwfont_library\dllmain.cpp" />
   </ItemGroup>
 </Project>
