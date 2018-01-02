@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <memory>
+#include <algorithm>
 
 #ifdef XWFONTLIBRARY_EXPORTS
 #   define XWFONTAPI __declspec(dllexport)
@@ -42,7 +43,7 @@ namespace xeekworx {
                 image(uint32_t width, uint32_t height, uint32_t background = transparent) : w(width), h(height) {
                     if (width * height) {
                         pixels = new uint32_t[width * height];
-                        for (int32_t i = 0; i < size(); ++i) pixels[i] = background;
+                        std::fill_n(pixels, width * height, background);
                     }
                 }
 
@@ -55,8 +56,9 @@ namespace xeekworx {
                 }
 
                 void clear(uint32_t background = transparent) { 
-                    if (!empty()) for (int32_t i = 0; i < size(); ++i) pixels[i] = background;
+                    if(!empty()) std::fill_n(pixels, size(), background);
                 }
+
                 bool empty() const { return size() > 0 && pixels; }
                 size_t size_in_bytes() const  { return (w * channels * h); }
                 size_t size() const { return w * h; }
