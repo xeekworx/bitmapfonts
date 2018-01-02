@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <memory>
 
 #ifdef XWFONTLIBRARY_EXPORTS
 #   define XWFONTAPI __declspec(dllexport)
@@ -12,31 +13,64 @@
 #endif
 
 namespace xeekworx {
-    extern "C" {
+    namespace bitmap_fonts {
+        extern "C" {
 
-        inline uint32_t rgba_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-        {
-            return ((r)+(g << 8) + (b << 16) + (a << 24));
+            struct generate_config {
+                const char * font_path = nullptr;
+                long font_size = 14;
+                unsigned long begin_char = 0;
+                unsigned long end_char = 255;
+                unsigned int page_size = 768;
+
+                uint32_t foreground = 0xFF000000;
+                uint32_t background = 0x00FFFFFF;
+                uint32_t border = 0xDF00FF42;
+                unsigned int border_thickness = 1;
+
+                unsigned int padding = 1;
+            };
+
+            class image {
+            public:
+                static constexpr uint32_t transparent = 0xFFFFFF00;
+
+                uint32_t * pixels = nullptr;
+                static constexpr uint32_t channels = 4;
+                int32_t w = 0, h = 0; // signed, because x / y are
+
+                image(uint32_t width, uint32_t height, uint32_t background = transparent) : w(width), h(height) {
+                    if (width * height) {
+                        pixels = new uint32_t[width * height];
+                        for (int32_t i = 0; i < size(); ++i) pixels[i] = background;
+                    }
+                }
+
+                image(const image& source) : image(source.w, source.h) {
+                    if (!empty()) memcpy(pixels, source.pixels, size_in_bytes());
+                }
+
+                ~image() {
+                    if (pixels) delete[] pixels;
+                }
+
+                void clear(uint32_t background = transparent) { 
+                    if (!empty()) for (int32_t i = 0; i < size(); ++i) pixels[i] = background;
+                }
+                bool empty() const { return size() > 0 && pixels; }
+                size_t size_in_bytes() const  { return (w * channels * h); }
+                size_t size() const { return w * h; }
+
+                uint32_t& operator[](const int i) { return pixels[i]; }
+                const uint32_t& operator[](const int i) const { return pixels[i]; }
+
+                uint32_t from_point(uint32_t x, uint32_t y) { return pixels[x + w * y]; }
+                void to_point(uint32_t x, uint32_t y, uint32_t value) { pixels[x + w * y] = value; }
+            };
+
+            XWFONTAPI int generate(const generate_config * config);
+            XWFONTAPI const char * get_error(void);
+
         }
-
-        inline uint32_t bgra_to_html(uint32_t color)
-        {
-            return ((((color >> 16) & 0xff))+(((color >> 8) & 0xff) << 8) + (((color) & 0xff) << 16) + (((color >> 24) & 0xff) << 24));
-        }
-
-        // Converts from an html ordered color to what xwf uses internally (BGRA)
-        inline uint32_t html_color(uint32_t webhex) 
-        {
-            return (((webhex >> 16) & 0xff)) + (((webhex >> 8) & 0xff) << 8) + (((webhex) & 0xff) << 16) + (((webhex >> 24) & 0xff) << 24);
-        }
-
-        inline uint32_t html_color_ex(uint32_t webhex, uint8_t alpha)
-        {
-            return (((webhex >> 16) & 0xff)) + (((webhex >> 8) & 0xff) << 8) + (((webhex) & 0xff) << 16) + (alpha << 24);
-        }
-
-        XWFONTAPI int xwf_test(const char * font_path, long font_size, unsigned long start_char, unsigned long end_char, uint32_t foreground = 0xFF000000, uint32_t background = 0x00FFFFFF);
-        XWFONTAPI const char * xwf_geterror(void);
-
     }
 }
