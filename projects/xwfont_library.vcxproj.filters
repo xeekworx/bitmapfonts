@@ -21,6 +21,9 @@
     <ClInclude Include="../src/xwfont_api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\third-party\rectpack2D\src\pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/xwfont_library\dllmain.cpp">
@@ -30,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="../src/xwfont_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\third-party\rectpack2D\src\pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

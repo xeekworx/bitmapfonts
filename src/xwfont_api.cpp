@@ -18,13 +18,15 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include <pack.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 static constexpr size_t xwf_errorstr_length = 256;
 static char xwf_errorstr[xwf_errorstr_length] = {};
 
-static void draw_rect(const FT_Int x, const FT_Int y, const FT_Int width, const FT_Int height, uint32_t html_color, std::vector<uint32_t>& image, const FT_Int image_width, const FT_Int image_height);
+static void draw_rect(const FT_Int x, const FT_Int y, const FT_Int width, const FT_Int height, uint32_t html_color, const FT_Int thickness, std::vector<uint32_t>& image, const FT_Int image_width, const FT_Int image_height);
 static void draw_bitmap(const FT_Bitmap* bitmap, const FT_Int x, const FT_Int y, std::vector<uint32_t>& image, const FT_Int image_width, const FT_Int image_height, uint32_t foreground);
 
 XWFONTAPI const char * xeekworx::xwf_geterror(void)
@@ -42,11 +44,10 @@ XWFONTAPI int xeekworx::xwf_test(const char * font_path, long font_size, unsigne
     FT_Face                 face = nullptr;
     FT_GlyphSlot            slot = nullptr;
     FT_Vector               pen = { 0, 0 };
-
-    unsigned int            width = 0, height = 0;
-
-    unsigned int            image_w = 512, image_h = 512;
+    unsigned int            glyph_width = 0, glyph_height = 0;
+    unsigned int            image_w = 1024, image_h = 1024;
     std::vector<uint32_t>   image(image_w * image_h, html_color(background));
+    FT_Int                  border = 0;
 
     // Try-except is merely to facilitate a non-duplicated clean-up procedure
     try {
@@ -56,20 +57,80 @@ XWFONTAPI int xeekworx::xwf_test(const char * font_path, long font_size, unsigne
 
         slot = face->glyph;
 
-        for (unsigned long n = start_char; n < end_char; ++n) {
-            FT_Set_Transform(face, NULL, &pen);
+        struct rect_xywhf_glyph : rect_xywhf {
+            unsigned long character;
 
+            rect_xywhf_glyph() : rect_xywhf() {}
+            rect_xywhf_glyph(unsigned long character, int x, int y, int width, int height) : 
+                rect_xywhf(x, y, width, height), character(character) { }
+        };
+
+        std::vector<rect_xywhf_glyph> rects(end_char - start_char);
+        std::vector<rect_xywhf_glyph*> ptr_rects(end_char - start_char);
+        std::vector<bin> bins;
+        for (unsigned long n = start_char, r = 0; n < end_char; ++n, ++r) {
             error = FT_Load_Char(face, n, FT_LOAD_RENDER);
             if (error) continue;
 
-            if (n == (unsigned long) '_') {
-                width = slot->bitmap.width;
-                height = slot->bitmap.rows;
+            rects[r] = rect_xywhf_glyph(n, 0, 0, slot->bitmap.width + (border * 2), slot->bitmap.rows + (border * 2));
+            ptr_rects[r] = &rects[r];
+        }
+        if (!pack((rect_xywhf*const*)ptr_rects.data(), rects.size(), image_w, bins)) {
+            throw std::string("Failed to pack glyphs");
+        }
+        else {
+            image_w = bins[0].size.w;
+            image_h = bins[0].size.h;
+        }
 
-                draw_bitmap(&slot->bitmap, 0, 0, image, (FT_Int) image_w, (FT_Int) image_h, foreground);
-                draw_rect(0, 0, width, height, 0xac000000, image, image_w, image_h);
+        for (const rect_xywhf_glyph& rect : rects)
+        {
+            glyph_width = slot->bitmap.width;
+            glyph_height = slot->bitmap.rows;
+
+            pen.x = 0;
+            pen.y = 0;
+            //FT_Set_Transform(face, NULL, &pen);
+
+            if (rect.flipped) {
+                FT_Matrix matrix;
+                double angle = (90.0 / 360) * 3.14159 * 2;
+                matrix.xx = (FT_Fixed)(cos(angle) * 0x10000L);
+                matrix.xy = (FT_Fixed)(-sin(angle) * 0x10000L);
+                matrix.yx = (FT_Fixed)(sin(angle) * 0x10000L);
+                matrix.yy = (FT_Fixed)(cos(angle) * 0x10000L);
+                FT_Set_Transform(face, &matrix, NULL);
+            }
+            else {
+                FT_Set_Transform(face, NULL, &pen);
+            }
+
+            error = FT_Load_Char(face, rect.character, FT_LOAD_RENDER);
+            if (error) continue;
+
+            draw_bitmap(&slot->bitmap, rect.x + border, rect.y + border, image, (FT_Int)image_w, (FT_Int)image_h, foreground);
+            if (border) {
+                draw_rect(rect.x, rect.y, rect.w, rect.h, 0xac000000, border, image, image_w, image_h);
             }
         }
+
+        //FT_Int x = 0, y = 0;
+        //for (unsigned long n = start_char; n < end_char; ++n) {
+        //    FT_Set_Transform(face, NULL, &pen);
+
+        //    error = FT_Load_Char(face, n, FT_LOAD_RENDER);
+        //    if (error) continue;
+
+        //    glyph_width = slot->bitmap.width;
+        //    glyph_height = slot->bitmap.rows;
+
+        //    if (x + 60 + (border * 2) /* frame */ >= image_w) { x = 0; y += 60 + (border * 2) /* frame */; }
+
+        //    draw_bitmap(&slot->bitmap, x + border, y + border, image, (FT_Int) image_w, (FT_Int) image_h, foreground);
+        //    draw_rect(x, y, glyph_width + border * 2, glyph_height + border * 2, 0xac000000, border, image, image_w, image_h);
+
+        //    x += 60 + 2 /* frame */;
+        //}
 
         stbi_write_png("test.png", image_w, image_h, 4, image.data(), 0);
     }
@@ -124,10 +185,8 @@ static void draw_vline(const FT_Int x, const FT_Int y1, const FT_Int y2, uint32_
                 image[x + image_width * y] = blend_colors(html_color, image[x + image_width * y]);
 }
 
-static void draw_rect(const FT_Int x, const FT_Int y, const FT_Int width, const FT_Int height, uint32_t html_color, std::vector<uint32_t>& image, const FT_Int image_width, const FT_Int image_height)
+static void draw_rect(const FT_Int x, const FT_Int y, const FT_Int width, const FT_Int height, uint32_t html_color, const FT_Int thickness, std::vector<uint32_t>& image, const FT_Int image_width, const FT_Int image_height)
 {
-    FT_Int thickness = 3;
-
     // left
     for (FT_Int t = 0; t < thickness; ++t)
         draw_vline(x + t, y, y + height, html_color, image, image_width, image_height);
@@ -157,7 +216,7 @@ static void draw_bitmap(const FT_Bitmap* bitmap, const FT_Int x, const FT_Int y,
         {
             if (i < 0 || j < 0 || i >= image_width || j >= image_height) continue;
 
-            uint32_t background = 0xFF666666;//xeekworx::bgra_to_html(image[i + image_width * j]);
+            uint32_t background = xeekworx::bgra_to_html(image[i + image_width * j]);
             uint32_t target_color = xeekworx::html_color_ex(foreground, bitmap->buffer[q * bitmap->width + p]);
             image[i + image_width * j] = blend_colors(target_color, background);
         }
