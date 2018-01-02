@@ -144,6 +144,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::generate(const generate_config * config)
 
             std::stringstream filename_ss;
             filename_ss << "test." << std::setw(2) << std::setfill('0') << b << ".png";
+
             stbi_write_png(filename_ss.str().c_str(), page_image.w, page_image.h, page_image.channels, page_image.pixels, 0);
         }
     }

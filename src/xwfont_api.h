@@ -47,7 +47,7 @@ namespace xeekworx {
                 }
 
                 image(const image& source) : image(source.w, source.h) {
-                    if (!empty()) memcpy(pixels, source.pixels, size_in_bytes());
+                    if (source.w * source.h) memcpy(pixels, source.pixels, size_in_bytes());
                 }
 
                 ~image() {
