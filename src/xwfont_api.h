@@ -17,7 +17,7 @@ namespace xeekworx {
     namespace bitmap_fonts {
         extern "C" {
 
-            struct generate_config {
+            struct xwf_generation_config {
                 const char * font_path = nullptr;
                 uint32_t font_size = 14;
                 uint32_t begin_char = 0;
@@ -30,9 +30,36 @@ namespace xeekworx {
                 int32_t padding = 1;
             };
 
-            XWFONTAPI int generate(const generate_config * config);
-            XWFONTAPI const char * get_error(void);
+            struct xwf_image {
+                uint32_t * data = nullptr;
+                int32_t width = 0, height = 0, channels = 0;
+            };
 
+            struct xwf_glyph {
+                uint32_t character = 0;
+                int32_t source_image = -1;
+                int32_t source_x = 0, source_y = 0, source_w = 0, source_h = 0;
+                int32_t advance_x = 0, advance_y = 0;
+                int32_t bearing_left = 0, bearing_top = 0;
+                bool flipped = false;
+            };
+
+            struct xwf_font {
+                const char * name = nullptr;
+                uint32_t font_size = 0;
+                uint32_t glyph_character_start = 0;
+                uint32_t glyph_indexes_length = 0;
+                uint32_t * glyph_indexes = nullptr;
+                xwf_glyph * glyphs = nullptr;
+                uint32_t glyphs_length = 0;
+                xwf_image * images = nullptr;
+                uint32_t images_length = 0;
+            };
+
+            XWFONTAPI const char * get_error(void);
+            XWFONTAPI xwf_font * generate_font(const xwf_generation_config * config);
+            XWFONTAPI int delete_font(xwf_font * font);
+            XWFONTAPI int generate_sample(const xwf_font * font, const char * text, int32_t text_length = -1, const uint32_t background = 0x00000000);
         }
     }
 }
