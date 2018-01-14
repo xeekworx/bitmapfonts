@@ -102,6 +102,8 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
 
         // ALLOCATE THE NEW FONT:
         font->font_size = config->font_size;
+        //font->line_height = face->size->metrics.height >> 6;
+        font->line_height = (face->size->metrics.ascender - face->size->metrics.descender) >> 6;
         font->start_glyph_index = config->begin_char;
         font->glyph_indexes = new uint32_t[config->end_char - config->begin_char];
         font->num_glyph_indexes = config->end_char - config->begin_char;
@@ -131,17 +133,6 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
             for (uint32_t i=0; i < bins[b].rects.size(); ++i)
             {
                 const rect_xywhf_glyph& rect = *((rect_xywhf_glyph*)bins[b].rects[i]);
-
-                //if (rect.flipped) {
-                //    FT_Matrix matrix;
-                //    double angle = (90.0 / 360) * 3.14159 * 2;
-                //    matrix.xx = (FT_Fixed)(cos(angle) * 0x10000L);
-                //    matrix.xy = (FT_Fixed)(-sin(angle) * 0x10000L);
-                //    matrix.yx = (FT_Fixed)(sin(angle) * 0x10000L);
-                //    matrix.yy = (FT_Fixed)(cos(angle) * 0x10000L);
-                //    FT_Set_Transform(face, &matrix, NULL);
-                //}
-                //else FT_Set_Transform(face, NULL, NULL);
 
                 error = FT_Load_Char(face, rect.character, FT_LOAD_RENDER);
                 if (error) continue;
@@ -272,21 +263,32 @@ namespace xeekworx { namespace bitmap_fonts {
             // TODO: If I assume text is in UTF8 I should be converting that to 32bit 
             //       codepoints or really this function should take UTF-32 and other 
             //       functions doing some conversion.
-            int32_t measure_width = 0;
-            for (int32_t i = 0, x = 0, y = font->font_size, realX = 0; i < length; ++i) {
-                if ((uint32_t)text[i] < font->start_glyph_index ||
-                    (uint32_t)text[i] >= font->start_glyph_index + font->num_glyph_indexes)
+            int32_t measure_width = 0, measure_height = 0;
+            for (int32_t i = 0, x = 0, y = font->font_size, farthestX = 0, farthestY = 0; i < length; ++i) {
+                // Handle new lines first:
+                if (text[i] == (uint32_t) '\n') {
+                    x = 0;
+                    y += font->line_height;
+                    continue;
+                }
+
+                if (text[i] < font->start_glyph_index ||
+                    text[i] >= font->start_glyph_index + font->num_glyph_indexes)
                     continue; // TODO: Draw a special flyph for non-existent glyphs
 
-                uint32_t glyph_index = font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index];
+                uint32_t glyph_index = font->glyph_indexes[text[i] + font->start_glyph_index];
                 if (glyph_index >= font->num_glyphs)
                     continue; // TODO: Warn about something wrong with the font
 
-                const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index]];
+                const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[text[i] + font->start_glyph_index]];
 
-                // Measure at the end of the text:
-                realX = x + glyph.bearing_left;
-                if (i == length - 1) measure_width = realX + glyph.source_w;
+                // Text Measurement farthest extents:
+                if (measure_only) {
+                    farthestX = (x + glyph.bearing_left) + (!glyph.flipped ? glyph.source_w : glyph.source_h);
+                    farthestY = (y - glyph.bearing_top) + (!glyph.flipped ? glyph.source_h : glyph.source_w);
+                    if (farthestX > measure_width) measure_width = farthestX;
+                    if (farthestY > measure_height) measure_height = farthestY;
+                }
 
                 // Actual rendering here, if not just measuring:
                 if (!measure_only) {
@@ -322,7 +324,7 @@ namespace xeekworx { namespace bitmap_fonts {
             if (!measure_only) sample_image->save("sample.png");
             else {
                 width = measure_width;
-                height = font->font_size; // This didn't take into account newlines or characters below the baseline!
+                height = measure_height;
             }
             return 0;
         }
