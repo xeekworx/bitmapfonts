@@ -142,7 +142,8 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
                         &slot->bitmap, 
                         rect.x + config->border_thickness + config->padding,
                         rect.y + config->border_thickness + config->padding,
-                        config->foreground);
+                        config->foreground,
+                        image::rotation::left90degrees);
                 else
                     page_image->draw_bitmap(
                         &slot->bitmap,
@@ -301,7 +302,8 @@ namespace xeekworx { namespace bitmap_fonts {
                             glyph.source_w,
                             glyph.source_h,
                             x + glyph.bearing_left,
-                            y - glyph.bearing_top
+                            y - glyph.bearing_top,
+                            image::rotation::right90degrees
                         );
                     }
                     else

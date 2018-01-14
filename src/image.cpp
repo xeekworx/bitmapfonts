@@ -10,12 +10,19 @@
 
 using namespace xeekworx::bitmap_fonts;
 
-image::image(const uint32_t width, const uint32_t height, const uint32_t background) : m_width(width), m_height(height), m_external_data(false)
+image::image(const uint32_t width, const uint32_t height, const uint32_t background) 
+    : m_width(width), m_height(height), m_external_data(false)
 {
     if (width * height) {
         m_data = new uint32_t[width * height];
         std::fill_n(m_data, width * height, background);
     }
+}
+
+image::image(const uint32_t width, const uint32_t height)
+    : m_width(width), m_height(height), m_external_data(false)
+{
+    if (width * height) m_data = new uint32_t[width * height];
 }
 
 image::image(const image& source) : image(source.m_width, source.m_height)
@@ -24,7 +31,8 @@ image::image(const image& source) : image(source.m_width, source.m_height)
         std::memcpy(m_data, source.m_data, size_in_bytes());
 }
 
-image::image(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert) : m_width(width), m_height(height), m_external_data(!copy_convert)
+image::image(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert) 
+    : m_width(width), m_height(height), m_external_data(!copy_convert)
 {
     if (copy_convert) {
         if (width * height) {
@@ -34,6 +42,16 @@ image::image(uint32_t * source_pixels, const uint32_t width, const uint32_t heig
         }
     }
     else m_data = source_pixels;
+}
+
+image::image(const FT_Bitmap* ftbitmap, const uint32_t foreground, const uint32_t background)
+    : image(ftbitmap->width, ftbitmap->rows)
+{
+    for (int32_t i = 0; i < size(); ++i)
+        m_data[i] = blend_colors(
+            pixel_rgba(foreground, ftbitmap->buffer[i]),
+            background
+        );
 }
 
 image::~image()
@@ -67,61 +85,39 @@ uint32_t image::blend_colors(const uint32_t foreground, const uint32_t backgroun
     return result;
 }
 
-void image::draw_hline(const int32_t x1, const int32_t x2, const int32_t y, const uint32_t html_color)
+void image::draw_hline(const int32_t x1, const int32_t x2, const int32_t y, const uint32_t color)
 {
     if (y >= 0 && y < m_height)
         for (int32_t x = x1; x < x2; ++x)
             if (x >= 0 && x < m_width)
-                to_point(x, y, blend_colors(html_color, from_point(x, y)));
+                to_point(x, y, blend_colors(color, from_point(x, y)));
 }
 
-void image::draw_vline(const int32_t x, const int32_t y1, const int32_t y2, const uint32_t html_color)
+void image::draw_vline(const int32_t x, const int32_t y1, const int32_t y2, const uint32_t color)
 {
     if (x >= 0 && x < m_width)
         for (int32_t y = y1; y < y2; ++y)
             if (y >= 0 && y < m_height)
-                to_point(x, y, blend_colors(html_color, from_point(x, y)));
+                to_point(x, y, blend_colors(color, from_point(x, y)));
 }
 
-void image::draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const uint32_t thickness, const uint32_t html_color)
+void image::draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const uint32_t thickness, const uint32_t color)
 {
     // left
     for (uint32_t t = 0; t < thickness; ++t)
-        draw_vline(x + t, y, y + h, html_color);
+        draw_vline(x + t, y, y + h, color);
 
     // top
     for (uint32_t t = 0; t < thickness; ++t)
-        draw_hline(x + thickness, x + w, y + t, html_color);
+        draw_hline(x + thickness, x + w, y + t, color);
 
     // right
     for (uint32_t t = 0; t < thickness; ++t)
-        draw_vline((x + w - 1) - t, y + thickness, y + h, html_color);
+        draw_vline((x + w - 1) - t, y + thickness, y + h, color);
 
     // bottom
     for (uint32_t t = 0; t < thickness; ++t)
-        draw_hline(x + thickness, x + w - thickness, (y + h - 1) - t, html_color);
-}
-
-void image::draw_bitmap(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground)
-{
-    int32_t  dest_cx, dest_cy, source_cx, source_cy;
-    int32_t  x_max = x + ftbitmap->width;
-    int32_t  y_max = y + ftbitmap->rows;
-
-    for (dest_cx = x, source_cx = 0; dest_cx < x_max; dest_cx++, source_cx++)
-    {
-        for (dest_cy = y, source_cy = 0; dest_cy < y_max; dest_cy++, source_cy++)
-        {
-            if (dest_cx < 0 || dest_cy < 0 || dest_cx >= m_width || dest_cy >= m_height) continue;
-
-            to_point(dest_cx, dest_cy,
-                blend_colors(
-                    pixel_rgba(foreground, ftbitmap->buffer[source_cy * ftbitmap->width + source_cx]), // Target Color
-                    from_point(dest_cx, dest_cy) // Background Color
-                )
-            );
-        }
-    }
+        draw_hline(x + thickness, x + w - thickness, (y + h - 1) - t, color);
 }
 
 void image::draw_bitmap(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y)
@@ -136,29 +132,9 @@ void image::draw_bitmap(const image& source_img, const int32_t source_x, const i
         {
             if (dest_cx < 0 || dest_cy < 0 || dest_cx >= m_width || dest_cy >= m_height) continue;
 
-            to_point(dest_cx, dest_cy, source_img.from_point(source_cx, source_cy));
-        }
-    }
-}
-
-void image::draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground)
-{
-    const int32_t source_x = 0, source_y = 0;
-    const int32_t& source_w = ftbitmap->width;
-    const int32_t& source_h = ftbitmap->rows;
-    int32_t dest_cx, dest_cy, source_cx, source_cy;
-    const int32_t dest_x_max = x + source_h;
-    const int32_t dest_y_max = y + source_w;
-
-    for (dest_cy = y, source_cx = source_x; dest_cy < dest_y_max; dest_cy++, source_cx++)
-    {
-        for (dest_cx = x, source_cy = source_y + (ftbitmap->rows - 1); dest_cx < dest_x_max; dest_cx++, source_cy--)
-        {
-            if (dest_cx < 0 || dest_cy < 0 || dest_cx >= m_width || dest_cy >= m_height) continue;
-
             to_point(dest_cx, dest_cy,
                 blend_colors(
-                    pixel_rgba(foreground, ftbitmap->buffer[source_cy * ftbitmap->width + source_cx]), // Target Color
+                    source_img.from_point(source_cx, source_cy),
                     from_point(dest_cx, dest_cy) // Background Color
                 )
             );
@@ -166,32 +142,75 @@ void image::draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, cons
     }
 }
 
-void image::draw_bitmap_rotated(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y)
+void image::draw_bitmap(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground)
+{
+    draw_bitmap(
+        image(ftbitmap, foreground, image::transparent),
+        0, 0, ftbitmap->width, ftbitmap->rows,
+        x, y
+    );
+}
+
+void image::draw_bitmap_rotated(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y, rotation direction)
 {
     int32_t dest_cx, dest_cy, source_cx, source_cy;
     const int32_t dest_x_max = x + source_h;
     const int32_t dest_y_max = y + source_w;
 
-    for (dest_cy = y, source_cx = source_x + (source_w - 1); dest_cy < dest_y_max; dest_cy++, source_cx--)
-    {
-        for (dest_cx = x, source_cy = source_y; dest_cx < dest_x_max; dest_cx++, source_cy++)
+    if (direction == rotation::right90degrees) {
+        for (dest_cy = y, source_cx = source_x; dest_cy < dest_y_max; dest_cy++, source_cx++)
         {
-            if (dest_cx < 0 || dest_cy < 0 || dest_cx > m_width || dest_cy > m_height) continue;
-            if (source_cx < 0 || source_cy < 0 || source_cx > source_img.width() || source_cy > source_img.height()) continue;
+            for (dest_cx = x, source_cy = source_y + (source_h - 1); dest_cx < dest_x_max; dest_cx++, source_cy--)
+            {
+                if (dest_cx < 0 || dest_cy < 0 || dest_cx > m_width || dest_cy > m_height) continue;
+                if (source_cx < 0 || source_cy < 0 || source_cx > source_img.width() || source_cy > source_img.height()) continue;
 
-            to_point(dest_cx, dest_cy, source_img.from_point(source_cx, source_cy));
+                to_point(dest_cx, dest_cy,
+                    blend_colors(
+                        source_img.from_point(source_cx, source_cy),
+                        from_point(dest_cx, dest_cy) // Background Color
+                    )
+                );
+            }
+        }
+    }
+    else {
+        for (dest_cy = y, source_cx = source_x + (source_w - 1); dest_cy < dest_y_max; dest_cy++, source_cx--)
+        {
+            for (dest_cx = x, source_cy = source_y; dest_cx < dest_x_max; dest_cx++, source_cy++)
+            {
+                if (dest_cx < 0 || dest_cy < 0 || dest_cx > m_width || dest_cy > m_height) continue;
+                if (source_cx < 0 || source_cy < 0 || source_cx > source_img.width() || source_cy > source_img.height()) continue;
+
+                to_point(dest_cx, dest_cy,
+                    blend_colors(
+                        source_img.from_point(source_cx, source_cy),
+                        from_point(dest_cx, dest_cy) // Background Color
+                    )
+                );
+            }
         }
     }
 }
 
-bool image::save(const std::string& file) const
+void image::draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground, rotation direction)
 {
-    // PNG expects a BGRA format (ARGB in reverse)
+    draw_bitmap_rotated(
+        image(ftbitmap, foreground, image::transparent), 
+        0, 0, ftbitmap->width, ftbitmap->rows, 
+        x, y, 
+        direction
+    );
+}
+
+bool image::save(const std::string& to_file) const
+{
+    // PNG expects a ABGR format (RGBA in reverse)
     std::vector<uint32_t> converted(m_data, m_data + size());
     for (uint32_t& source_cx : converted) source_cx = pixel_abgr(pixel_rgba(source_cx));
 
     if (stbi_write_png(
-        file.c_str(),
+        to_file.c_str(),
         m_width, m_height,
         channels,
         converted.data(),
@@ -200,25 +219,15 @@ bool image::save(const std::string& file) const
     else return false;
 }
 
-bool image::save(uint32_t * buffer, const size_t size_in_bytes) const
+bool image::save(uint32_t * to_buffer, const size_t size_in_bytes) const
 {
-    if (size_in_bytes != this->size_in_bytes() || !buffer) return false;
+    if (size_in_bytes != this->size_in_bytes() || !to_buffer) return false;
 
-    // Bitmaps expects a BGRA format (ARGB in reverse)
+    // Bitmaps expects a ABGR format (RGBA in reverse)
     std::vector<uint32_t> converted(m_data, m_data + size());
     for (uint32_t& source_cx : converted) source_cx = pixel_abgr(pixel_rgba(source_cx));
 
-    std::memcpy(buffer, converted.data(), size_in_bytes);
+    std::memcpy(to_buffer, converted.data(), size_in_bytes);
 
     return true;
-}
-
-image::pixel_rgba::pixel_rgba(const pixel_abgr& source_cx) : r(source_cx.r), g(source_cx.g), b(source_cx.b), a(source_cx.a)
-{
-
-}
-
-image::pixel_abgr::pixel_abgr(const pixel_rgba& source_cx) : b(source_cx.b), g(source_cx.g), r(source_cx.r), a(source_cx.a)
-{
-
 }
