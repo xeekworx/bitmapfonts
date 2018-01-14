@@ -46,20 +46,20 @@ namespace xeekworx {
 
             struct xwf_font {
                 const char * name = nullptr;
-                uint32_t font_size = 0;
-                uint32_t glyph_character_start = 0;
-                uint32_t glyph_indexes_length = 0;
-                uint32_t * glyph_indexes = nullptr;
-                xwf_glyph * glyphs = nullptr;
-                uint32_t glyphs_length = 0;
+                uint32_t font_size = 0; // original font size (em / pixels)
+                uint32_t start_glyph_index = 0; // starting unicode code point
+                uint32_t num_glyph_indexes = 0; // number of glyph indexes
+                uint32_t * glyph_indexes = nullptr; // ordered in unicode code points
+                xwf_glyph * glyphs = nullptr; // glyph array corresponding to a glyph index
+                uint32_t num_glyphs = 0;
                 xwf_image * images = nullptr;
-                uint32_t images_length = 0;
+                uint32_t num_images = 0;
             };
 
             XWFONTAPI const char * get_error(void);
             XWFONTAPI xwf_font * generate_font(const xwf_generation_config * config);
             XWFONTAPI int delete_font(xwf_font * font);
-            XWFONTAPI int generate_sample(const xwf_font * font, const char * text, int32_t text_length = -1, const uint32_t background = 0x00000000);
+            XWFONTAPI int generate_sample(const xwf_font * font, const char * text, int32_t text_length, const int width, const int height, const uint32_t background = 0x00000000, const bool measure_only = false);
         }
     }
 }

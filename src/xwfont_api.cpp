@@ -100,16 +100,16 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
 
         // ALLOCATE THE NEW FONT:
         font->font_size = config->font_size;
-        font->glyph_character_start = config->begin_char;
+        font->start_glyph_index = config->begin_char;
         font->glyph_indexes = new uint32_t[config->end_char - config->begin_char];
-        font->glyph_indexes_length = config->end_char - config->begin_char;
+        font->num_glyph_indexes = config->end_char - config->begin_char;
 
         font->glyphs = new xwf_glyph[rects_index];
-        font->glyphs_length = rects_index;
+        font->num_glyphs = rects_index;
 
         font->images = new xwf_image[bins.size()];
-        font->images_length = bins.size();
-        for (uint32_t i = 0; i < font->images_length; ++i)
+        font->num_images = bins.size();
+        for (uint32_t i = 0; i < font->num_images; ++i)
         {
             font->images[i].width = bins[i].size.w;
             font->images[i].height = bins[i].size.h;
@@ -165,7 +165,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
                 }
 
                 // Glyph data collection:
-                font->glyph_indexes[rect.character - font->glyph_character_start] = i;
+                font->glyph_indexes[rect.character - font->start_glyph_index] = i;
                 font->glyphs[i].character = rect.character;
                 font->glyphs[i].flipped = rect.flipped;
                 font->glyphs[i].source_image = b;
@@ -214,7 +214,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
         }
         
         if (font->images) {
-            for (uint32_t i = 0; i < font->images_length; ++i) {
+            for (uint32_t i = 0; i < font->num_images; ++i) {
                 if (!font->images[i].data) continue;
                 delete[] font->images[i].data;
                 font->images[i].data = nullptr;
@@ -232,62 +232,80 @@ XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
     }
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::generate_sample(const xwf_font * font, const char * text, int32_t text_length, const uint32_t background)
+XWFONTAPI int xeekworx::bitmap_fonts::generate_sample(const xwf_font * font, const char * text, int32_t text_length, const int width, const int height, const uint32_t background, const bool measure_only)
 {
+    // Sanity checks...
     if (!font || !font->glyphs || !font->images) return -1;
     if (text_length == 0) return -1;
     else if (text_length < 0) text_length = (int32_t) strlen(text);
 
-    std::vector<image> images;
-    for (unsigned i = 0; i < font->images_length; ++i) {
-        images.push_back(image(font->images[i].data, font->images[i].width, font->images[i].height, true));
+    // Convert the font's images / pages into image objects so they're easier
+    // to work with:
+    std::vector<image> images; // No images will be here with measure_only
+    if (!measure_only) {
+        for (unsigned i = 0; i < font->num_images; ++i) {
+            images.push_back(image(font->images[i].data, font->images[i].width, font->images[i].height, true));
+        }
     }
 
-    // MEASUREMENTS:
+    // Create sample image, only if not just measuring:
+    std::unique_ptr<image> sample_image;
+    if (!measure_only) sample_image = std::make_unique<image>(width, height, background);
+
+    // RENDERING & MEASUREMENTS:
     // To get the actual width of rendered text we're going to have to simulate
     // drawing the text so that the advance width and bearing are calculated.
-    int32_t width = 0;
-    for (int32_t i = 0, x = 0, realX=0; i < text_length; ++i) {
-        if ((uint32_t)text[i] < font->glyph_character_start || (uint32_t)text[i] >= font->glyph_character_start + font->glyph_indexes_length) continue;
-        const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->glyph_character_start]];
+    //
+    // TODO: If I assume text is in UTF8 I should be converting that to 32bit 
+    //       codepoints or really this function should take UTF-32 and other 
+    //       functions doing some conversion.
+    int32_t measure_width = 0;
+    for (int32_t i = 0, x = 0, y = font->font_size, realX=0; i < text_length; ++i) {
+        if ((uint32_t)text[i] < font->start_glyph_index ||
+            (uint32_t)text[i] >= font->start_glyph_index + font->num_glyph_indexes) 
+            continue; // TODO: Draw a special flyph for non-existent glyphs
 
+        uint32_t glyph_index = font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index];
+        if (glyph_index >= font->num_glyphs)
+            continue; // TODO: Warn about something wrong with the font
+
+        const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index]];
+
+        // Measure at the end of the text:
         realX = x + glyph.bearing_left;
-        x += glyph.advance_x;
-        if (i == text_length - 1) width = realX + glyph.source_w;
-    }
+        if (i == text_length - 1) measure_width = realX + glyph.source_w;
 
-    image sample_image(width, font->font_size, background);
-
-    for (int32_t i = 0, x = 0, y = font->font_size; i < text_length; ++i) {
-        if ((uint32_t)text[i] < font->glyph_character_start || (uint32_t)text[i] >= font->glyph_character_start + font->glyph_indexes_length) continue;
-        const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->glyph_character_start]];
-        if (glyph.flipped) {
-            sample_image.draw_bitmap_rotated
-            (
-                images[glyph.source_image],
-                glyph.source_x,
-                glyph.source_y,
-                glyph.source_w,
-                glyph.source_h,
-                x + glyph.bearing_left,
-                y - glyph.bearing_top
-            );
+        // Actual rendering here, if not just measuring:
+        if (!measure_only) {
+            if (glyph.flipped) {
+                sample_image->draw_bitmap_rotated
+                (
+                    images[glyph.source_image],
+                    glyph.source_x,
+                    glyph.source_y,
+                    glyph.source_w,
+                    glyph.source_h,
+                    x + glyph.bearing_left,
+                    y - glyph.bearing_top
+                );
+            }
+            else
+                sample_image->draw_bitmap
+                (
+                    images[glyph.source_image],
+                    glyph.source_x,
+                    glyph.source_y,
+                    glyph.source_w,
+                    glyph.source_h,
+                    x + glyph.bearing_left,
+                    y - glyph.bearing_top
+                );
         }
-        else
-            sample_image.draw_bitmap
-            (
-                images[glyph.source_image],
-                glyph.source_x,
-                glyph.source_y,
-                glyph.source_w,
-                glyph.source_h,
-                x + glyph.bearing_left,
-                y - glyph.bearing_top
-            );
+
+        // Move the pen:
         x += glyph.advance_x;
     }
 
-    sample_image.save("sample.png");
-
+    if (!measure_only) sample_image->save("sample.png");
     return 0;
 }
