@@ -59,7 +59,11 @@ namespace xeekworx {
             XWFONTAPI const char * get_error(void);
             XWFONTAPI xwf_font * generate_font(const xwf_generation_config * config);
             XWFONTAPI int delete_font(xwf_font * font);
-            XWFONTAPI int generate_sample(const xwf_font * font, const char * text, int32_t text_length, const int width, const int height, const uint32_t background = 0x00000000, const bool measure_only = false);
+            XWFONTAPI void set_sample_background(uint32_t background = 0xFFFFFF00);
+            XWFONTAPI int render_sample_utf8(const xwf_font * font, const char * text, int length, int width, int height);
+            XWFONTAPI int render_sample_utf16(const xwf_font * font, const wchar_t * text, int length, int width, int height);
+            XWFONTAPI int measure_sample_utf8(const xwf_font * font, const char * text, int length, int * out_width, int * out_height);
+            XWFONTAPI int measure_sample_utf16(const xwf_font * font, const wchar_t * text, int length, int * out_width, int * out_height);
         }
     }
 }

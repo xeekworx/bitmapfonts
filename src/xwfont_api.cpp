@@ -14,18 +14,20 @@
 #include <memory>
 
 #include "xwfont_api.h"
+#include "image.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-#include "image.h"
-#include <pack.h>
+#include <pack.h> // TODO: Switch to stb_rect_pack someday (maybe)
+#include <utf8.h>
 
 namespace xeekworx {
     namespace bitmap_fonts {
 
         static constexpr size_t errorstr_length = 256;
         static char errorstr[errorstr_length] = {};
+
+        static uint32_t sample_background = image::transparent;
 
 } }
 
@@ -232,80 +234,181 @@ XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
     }
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::generate_sample(const xwf_font * font, const char * text, int32_t text_length, const int width, const int height, const uint32_t background, const bool measure_only)
+
+
+XWFONTAPI void xeekworx::bitmap_fonts::set_sample_background(uint32_t background)
 {
-    // Sanity checks...
-    if (!font || !font->glyphs || !font->images) return -1;
-    if (text_length == 0) return -1;
-    else if (text_length < 0) text_length = (int32_t) strlen(text);
+    sample_background = background;
+}
 
-    // Convert the font's images / pages into image objects so they're easier
-    // to work with:
-    std::vector<image> images; // No images will be here with measure_only
-    if (!measure_only) {
-        for (unsigned i = 0; i < font->num_images; ++i) {
-            images.push_back(image(font->images[i].data, font->images[i].width, font->images[i].height, true));
-        }
-    }
+namespace xeekworx { namespace bitmap_fonts {
+        static int render_sample_internal(
+            const xwf_font * font,
+            const uint32_t * text, const int length,
+            int& width, int& height,
+            bool measure_only = false)
+        {
+            // Sanity checks...
+            if (!font || !font->glyphs || !font->images) return -1;
+            if (length <= 0) return -1;
 
-    // Create sample image, only if not just measuring:
-    std::unique_ptr<image> sample_image;
-    if (!measure_only) sample_image = std::make_unique<image>(width, height, background);
-
-    // RENDERING & MEASUREMENTS:
-    // To get the actual width of rendered text we're going to have to simulate
-    // drawing the text so that the advance width and bearing are calculated.
-    //
-    // TODO: If I assume text is in UTF8 I should be converting that to 32bit 
-    //       codepoints or really this function should take UTF-32 and other 
-    //       functions doing some conversion.
-    int32_t measure_width = 0;
-    for (int32_t i = 0, x = 0, y = font->font_size, realX=0; i < text_length; ++i) {
-        if ((uint32_t)text[i] < font->start_glyph_index ||
-            (uint32_t)text[i] >= font->start_glyph_index + font->num_glyph_indexes) 
-            continue; // TODO: Draw a special flyph for non-existent glyphs
-
-        uint32_t glyph_index = font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index];
-        if (glyph_index >= font->num_glyphs)
-            continue; // TODO: Warn about something wrong with the font
-
-        const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index]];
-
-        // Measure at the end of the text:
-        realX = x + glyph.bearing_left;
-        if (i == text_length - 1) measure_width = realX + glyph.source_w;
-
-        // Actual rendering here, if not just measuring:
-        if (!measure_only) {
-            if (glyph.flipped) {
-                sample_image->draw_bitmap_rotated
-                (
-                    images[glyph.source_image],
-                    glyph.source_x,
-                    glyph.source_y,
-                    glyph.source_w,
-                    glyph.source_h,
-                    x + glyph.bearing_left,
-                    y - glyph.bearing_top
-                );
+            // Convert the font's images / pages into image objects so they're easier
+            // to work with:
+            std::vector<image> images; // No images will be here with measure_only
+            if (!measure_only) {
+                for (unsigned i = 0; i < font->num_images; ++i) {
+                    images.push_back(image(font->images[i].data, font->images[i].width, font->images[i].height, true));
+                }
             }
-            else
-                sample_image->draw_bitmap
-                (
-                    images[glyph.source_image],
-                    glyph.source_x,
-                    glyph.source_y,
-                    glyph.source_w,
-                    glyph.source_h,
-                    x + glyph.bearing_left,
-                    y - glyph.bearing_top
-                );
+
+            // Create sample image, only if not just measuring:
+            std::unique_ptr<image> sample_image;
+            if (!measure_only) sample_image = std::make_unique<image>(width, height, sample_background);
+
+            // RENDERING & MEASUREMENTS:
+            // To get the actual width of rendered text we're going to have to simulate
+            // drawing the text so that the advance width and bearing are calculated.
+            //
+            // TODO: If I assume text is in UTF8 I should be converting that to 32bit 
+            //       codepoints or really this function should take UTF-32 and other 
+            //       functions doing some conversion.
+            int32_t measure_width = 0;
+            for (int32_t i = 0, x = 0, y = font->font_size, realX = 0; i < length; ++i) {
+                if ((uint32_t)text[i] < font->start_glyph_index ||
+                    (uint32_t)text[i] >= font->start_glyph_index + font->num_glyph_indexes)
+                    continue; // TODO: Draw a special flyph for non-existent glyphs
+
+                uint32_t glyph_index = font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index];
+                if (glyph_index >= font->num_glyphs)
+                    continue; // TODO: Warn about something wrong with the font
+
+                const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[(uint32_t)text[i] + font->start_glyph_index]];
+
+                // Measure at the end of the text:
+                realX = x + glyph.bearing_left;
+                if (i == length - 1) measure_width = realX + glyph.source_w;
+
+                // Actual rendering here, if not just measuring:
+                if (!measure_only) {
+                    if (glyph.flipped) {
+                        sample_image->draw_bitmap_rotated
+                        (
+                            images[glyph.source_image],
+                            glyph.source_x,
+                            glyph.source_y,
+                            glyph.source_w,
+                            glyph.source_h,
+                            x + glyph.bearing_left,
+                            y - glyph.bearing_top
+                        );
+                    }
+                    else
+                        sample_image->draw_bitmap
+                        (
+                            images[glyph.source_image],
+                            glyph.source_x,
+                            glyph.source_y,
+                            glyph.source_w,
+                            glyph.source_h,
+                            x + glyph.bearing_left,
+                            y - glyph.bearing_top
+                        );
+                }
+
+                // Move the pen:
+                x += glyph.advance_x;
+            }
+
+            if (!measure_only) sample_image->save("sample.png");
+            else {
+                width = measure_width;
+                height = font->font_size; // This didn't take into account newlines or characters below the baseline!
+            }
+            return 0;
         }
-
-        // Move the pen:
-        x += glyph.advance_x;
     }
+}
 
-    if (!measure_only) sample_image->save("sample.png");
-    return 0;
+XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf8(
+    const xwf_font * font,
+    const char * text, int length,
+    int width, int height)
+{
+    length = length < 0 ? std::strlen(text) : length;
+    std::string in_text(text, text + length);
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(in_text.begin(), in_text.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
+    
+    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, false);
+}
+
+XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf16(
+    const xwf_font * font,
+    const wchar_t * text, int length,
+    int width, int height)
+{
+    length = length < 0 ? std::wcslen(text) : length;
+    std::wstring in_text(text, text + length);
+
+    // Convert it to utf-8
+    std::string out_utf8;
+    utf8::utf16to8(in_text.begin(), in_text.end(), std::back_inserter(out_utf8));
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(out_utf8.begin(), out_utf8.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
+
+    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, false);
+}
+
+XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf8(
+    const xwf_font * font,
+    const char * text, int length,
+    int * out_width, int * out_height)
+{
+    length = length < 0 ? std::strlen(text) : length;
+    std::string in_text(text, text + length);
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(in_text.begin(), in_text.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
+
+    int tmp_w = 0, tmp_h = 0;
+    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, true);
+
+    if (out_width) *out_width = tmp_w;
+    if (out_height) *out_height = tmp_h;
+
+    return result;
+}
+
+XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf16(
+    const xwf_font * font,
+    const wchar_t * text, int length,
+    int * out_width, int * out_height)
+{
+    length = length < 0 ? std::wcslen(text) : length;
+    std::wstring in_text(text, text + length);
+
+    // Convert it to utf-8
+    std::string out_utf8;
+    utf8::utf16to8(in_text.begin(), in_text.end(), std::back_inserter(out_utf8));
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(out_utf8.begin(), out_utf8.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
+
+    int tmp_w = 0, tmp_h = 0;
+    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, true);
+
+    if (out_width) *out_width = tmp_w;
+    if (out_height) *out_height = tmp_h;
+
+    return result;
 }

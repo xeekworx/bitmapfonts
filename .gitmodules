@@ -4,3 +4,6 @@
 [submodule "third-party/rectpack2D"]
 	path = third-party/rectpack2D
 	url = https://github.com/TeamHypersomnia/rectpack2D.git
+[submodule "third-party/utfcpp"]
+	path = third-party/utfcpp
+	url = https://github.com/nemtrif/utfcpp.git
