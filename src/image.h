@@ -1,17 +1,24 @@
 #pragma once
 /*
+    This is the image buffer management and rendering for the Xeekworx Font API, 
+    but eventually rendering will be moved to a derivable class so that rendering 
+    is possible in OpenGL, NanoVG, and perhaps even SDL. When this happens I'll 
+    delete relevant parts of this this comment.
+
     NOTE:
-    The internal buffer format is RGBA, so specifying colors in parameters
-    as 32-bit values are the same as in HTML, but with a required alpha, example:
-        For opaque red use:             0xFF0000FF
-        For opaque green use:           0x00FF00FF
-        For opaque blue use:            0x0000FFFF
-        For transparent / no color use: 0x00000000 or 0xFFFFFF00
+    The internal pixel format is RGBA, so specifying colors in parameters as 
+    32-bit values are ALMOST the same as in HTML, but with a required alpha. 
+    Examples:
 
-    Do not use HTML colors without alpha channels or the bit-math will not give you
-    desired results.
+        For opaque red use:                 0xFF0000FF
+        For opaque green use:               0x00FF00FF
+        For opaque blue use:                0x0000FFFF
+        For transparent / no color use:     0x00000000 or 0xFFFFFF00
 
-    When using save functions the pixels are converted to ABGR so that the buffer
+    Do not use HTML colors without alpha channels or the bit-math will not give 
+    you desired results, since at least on x86 bits are right to left for integers.
+
+    When using save functions the pixels are converted to ABGR so that the buffer 
     will be bitmap compatible for saving to files or passing to other apis that 
     assume it's bitmap data. This also means the image constructor that takes 
     a pixel buffer as a parameter expects those pixels to be in the ABGR format.
