@@ -47,6 +47,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
     FT_GlyphSlot            slot = nullptr;
     FT_Vector               pen = { 0, 0 };
     unsigned int            glyph_width = 0, glyph_height = 0;
+    const uint32_t          num_glyphs = config->end_char + 1 - config->begin_char;
 
     // Try-except is merely to facilitate a non-duplicated clean-up procedure
     try {
@@ -66,35 +67,38 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
         // Derive from rectpack2D's structure and add some of our needed fields to
         // it (flipped will mean that the glyph should be rotated 90 degrees):
         struct rect_xywhf_glyph : rect_xywhf {
-            unsigned long character;
+            uint32_t character;
 
             rect_xywhf_glyph() : rect_xywhf() {}
-            rect_xywhf_glyph(unsigned long character, int x, int y, int width, int height) :
+            rect_xywhf_glyph(uint32_t character, int x, int y, int width, int height) :
                 rect_xywhf(x, y, width, height), character(character) {
                 flipped = false;
             }
         };
 
-        unsigned long rects_index = 0;
-        std::vector<rect_xywhf_glyph> rects(config->end_char - config->begin_char);
-        std::vector<rect_xywhf_glyph*> rect_ptrs(config->end_char - config->begin_char);
+        uint32_t rects_index = 0;
+        std::vector<rect_xywhf_glyph> rects;
+        std::vector<rect_xywhf_glyph*> rect_ptrs;
         std::vector<bin> bins; // Each bin is an image
-        for (unsigned long n = config->begin_char; n < config->end_char; ++n)
+        for (uint32_t n = config->begin_char; n <= config->end_char; ++n)
         {
-            if (!FT_Get_Char_Index(face, n)) continue; // No glyph image exists for this character
+            if (FT_Get_Char_Index(face, (FT_ULong)n) == 0) 
+                continue; // No glyph image exists for this character
 
-            error = FT_Load_Char(face, n, FT_LOAD_RENDER);
-            if (error) continue;
+            if((error = FT_Load_Char(face, (FT_ULong)n, FT_LOAD_RENDER)))
+                continue;
 
-            rects[rects_index] = rect_xywhf_glyph(n, 0, 0,
-                slot->bitmap.width + (config->border_thickness * 2) + (config->padding * 2),
-                slot->bitmap.rows + (config->border_thickness * 2) + (config->padding * 2));
-            rect_ptrs[rects_index] = &rects[rects_index];
-            ++rects_index;
+            rects.push_back(
+                rect_xywhf_glyph(
+                    n, 0, 0,
+                    slot->bitmap.width + (config->border_thickness * 2) + (config->padding * 2),
+                    slot->bitmap.rows + (config->border_thickness * 2) + (config->padding * 2)
+                )
+            );
         }
-        // Resize the rect and rect pointer vectors to be just as large as they need to be
-        rects.resize(rects_index);
-        rect_ptrs.resize(rects_index);
+
+        // Pack wants a vector of rect pointers, so extra work...
+        for (auto& r : rects) rect_ptrs.push_back(&r);
 
         if (!pack((rect_xywhf*const*)rect_ptrs.data(), rects.size(), config->page_size, bins)) {
             throw std::string("Failed to pack glyphs");
@@ -102,18 +106,18 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
 
         // ALLOCATE THE NEW FONT:
         font->font_size = config->font_size;
-        //font->line_height = face->size->metrics.height >> 6;
         font->line_height = (face->size->metrics.ascender - face->size->metrics.descender) >> 6;
         font->start_glyph_index = config->begin_char;
-        font->glyph_indexes = new uint32_t[config->end_char - config->begin_char];
-        font->num_glyph_indexes = config->end_char - config->begin_char;
+        font->glyph_indexes = new uint32_t[num_glyphs];
+        font->num_glyph_indexes = num_glyphs;
 
-        font->glyphs = new xwf_glyph[rects_index];
-        font->num_glyphs = rects_index;
+        font->num_glyphs = rects.size();
+        font->glyphs = new xwf_glyph[font->num_glyphs];
 
-        font->images = new xwf_image[bins.size()];
         font->num_images = bins.size();
-        for (uint32_t i = 0; i < font->num_images; ++i)
+        font->images = new xwf_image[font->num_images];
+
+        for (int i = 0; i < font->num_images; ++i)
         {
             font->images[i].width = bins[i].size.w;
             font->images[i].height = bins[i].size.h;
@@ -124,17 +128,17 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
         // GENERATE FONT (IMAGES & DATA):
         // This is where the actual rendering of the glyphs occurs.
 
-        for (size_t b = 0; b < bins.size(); ++b)
+        for (uint32_t b = 0, glyph_index = 0; b < bins.size(); ++b)
         {
             // Create a temporary image object that has rendering capability:
             image_ptr page_image = std::make_shared<image>(bins[b].size.w, bins[b].size.h, config->background);
 
             // Iterate each glyph / rect pointer within the bin
-            for (uint32_t i=0; i < bins[b].rects.size(); ++i)
+            for (uint32_t i=0; i < bins[b].rects.size(); ++i, ++glyph_index)
             {
                 const rect_xywhf_glyph& rect = *((rect_xywhf_glyph*)bins[b].rects[i]);
 
-                error = FT_Load_Char(face, rect.character, FT_LOAD_RENDER);
+                error = FT_Load_Char(face, (FT_ULong)rect.character, FT_LOAD_RENDER);
                 if (error) continue;
 
                 if(rect.flipped)
@@ -159,18 +163,18 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
                 }
 
                 // Glyph data collection:
-                font->glyph_indexes[rect.character - font->start_glyph_index] = i;
-                font->glyphs[i].character = rect.character;
-                font->glyphs[i].flipped = rect.flipped;
-                font->glyphs[i].source_image = b;
-                font->glyphs[i].source_x = rect.x + config->border_thickness + config->padding;
-                font->glyphs[i].source_y = rect.y + config->border_thickness + config->padding;
-                font->glyphs[i].source_w = !rect.flipped ? slot->bitmap.width : slot->bitmap.rows;
-                font->glyphs[i].source_h = !rect.flipped ? slot->bitmap.rows : slot->bitmap.width;
-                font->glyphs[i].advance_x = slot->advance.x >> 6;
-                font->glyphs[i].advance_y = slot->advance.y >> 6;
-                font->glyphs[i].bearing_left = slot->bitmap_left;
-                font->glyphs[i].bearing_top = slot->bitmap_top;
+                font->glyph_indexes[rect.character - font->start_glyph_index] = glyph_index;
+                font->glyphs[glyph_index].character = rect.character;
+                font->glyphs[glyph_index].flipped = rect.flipped;
+                font->glyphs[glyph_index].source_image = b;
+                font->glyphs[glyph_index].source_x = rect.x + config->border_thickness + config->padding;
+                font->glyphs[glyph_index].source_y = rect.y + config->border_thickness + config->padding;
+                font->glyphs[glyph_index].source_w = !rect.flipped ? slot->bitmap.width : slot->bitmap.rows;
+                font->glyphs[glyph_index].source_h = !rect.flipped ? slot->bitmap.rows : slot->bitmap.width;
+                font->glyphs[glyph_index].advance_x = slot->advance.x >> 6;
+                font->glyphs[glyph_index].advance_y = slot->advance.y >> 6;
+                font->glyphs[glyph_index].bearing_left = slot->bitmap_left;
+                font->glyphs[glyph_index].bearing_top = slot->bitmap_top;
             }
 
             std::stringstream filename;
@@ -238,11 +242,13 @@ namespace xeekworx { namespace bitmap_fonts {
             const xwf_font * font,
             const uint32_t * text, const int length,
             int& width, int& height,
-            bool measure_only = false)
+            int padding,
+            bool measure_only)
         {
             // Sanity checks...
             if (!font || !font->glyphs || !font->images) return -1;
             if (length <= 0) return -1;
+            if (measure_only) padding = 0;
 
             // Convert the font's images / pages into image objects so they're easier
             // to work with:
@@ -255,7 +261,7 @@ namespace xeekworx { namespace bitmap_fonts {
 
             // Create sample image, only if not just measuring:
             std::unique_ptr<image> sample_image;
-            if (!measure_only) sample_image = std::make_unique<image>(width, height, sample_background);
+            if (!measure_only) sample_image = std::make_unique<image>(width + padding * 2, height + padding * 2, sample_background);
 
             // RENDERING & MEASUREMENTS:
             // To get the actual width of rendered text we're going to have to simulate
@@ -264,24 +270,25 @@ namespace xeekworx { namespace bitmap_fonts {
             // TODO: If I assume text is in UTF8 I should be converting that to 32bit 
             //       codepoints or really this function should take UTF-32 and other 
             //       functions doing some conversion.
+            int32_t startX = padding, startY = padding;
             int32_t measure_width = 0, measure_height = 0;
-            for (int32_t i = 0, x = 0, y = font->font_size, farthestX = 0, farthestY = 0; i < length; ++i) {
+            for (int32_t i = 0, x = startX, y = font->font_size + startY, farthestX = 0, farthestY = 0; i < length; ++i) {
                 // Handle new lines first:
                 if (text[i] == (uint32_t) '\n') {
-                    x = 0;
+                    x = startX;
                     y += font->line_height;
                     continue;
                 }
 
                 if (text[i] < font->start_glyph_index ||
                     text[i] >= font->start_glyph_index + font->num_glyph_indexes)
-                    continue; // TODO: Draw a special flyph for non-existent glyphs
+                    continue; // TODO: Draw a special glyph for non-existent glyphs
 
-                uint32_t glyph_index = font->glyph_indexes[text[i] + font->start_glyph_index];
+                uint32_t glyph_index = font->glyph_indexes[text[i] - font->start_glyph_index];
                 if (glyph_index >= font->num_glyphs)
                     continue; // TODO: Warn about something wrong with the font
 
-                const xwf_glyph& glyph = font->glyphs[font->glyph_indexes[text[i] + font->start_glyph_index]];
+                const xwf_glyph& glyph = font->glyphs[glyph_index];
 
                 // Text Measurement farthest extents:
                 if (measure_only) {
@@ -336,7 +343,7 @@ namespace xeekworx { namespace bitmap_fonts {
 XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf8(
     const xwf_font * font,
     const char * text, int length,
-    int width, int height)
+    int width, int height, int padding)
 {
     length = length < 0 ? std::strlen(text) : length;
     std::string in_text(text, text + length);
@@ -346,13 +353,13 @@ XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf8(
     std::vector<uint32_t> out_utf32;
     utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
     
-    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, false);
+    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
 }
 
 XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf16(
     const xwf_font * font,
     const wchar_t * text, int length,
-    int width, int height)
+    int width, int height, int padding)
 {
     length = length < 0 ? std::wcslen(text) : length;
     std::wstring in_text(text, text + length);
@@ -366,7 +373,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf16(
     std::vector<uint32_t> out_utf32;
     utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
 
-    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, false);
+    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
 }
 
 XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf8(
@@ -383,7 +390,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf8(
     utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
 
     int tmp_w = 0, tmp_h = 0;
-    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, true);
+    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, 0, true);
 
     if (out_width) *out_width = tmp_w;
     if (out_height) *out_height = tmp_h;
@@ -409,7 +416,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf16(
     utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
 
     int tmp_w = 0, tmp_h = 0;
-    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, true);
+    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, 0, true);
 
     if (out_width) *out_width = tmp_w;
     if (out_height) *out_height = tmp_h;
