@@ -14,7 +14,7 @@
 #endif
 
 namespace xeekworx {
-    namespace bitmap_fonts {
+    namespace bitmapfonts {
         extern "C" {
 
             struct xwf_generation_config {

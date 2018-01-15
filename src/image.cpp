@@ -8,7 +8,7 @@
 #define STBI_MSC_SECURE_CRT // Be sure to remove _CRT_SECURE_NO_WARNINGS from the project's properties when nothings merges fixes into stb
 #include <stb_image_write.h>
 
-using namespace xeekworx::bitmap_fonts;
+using namespace xeekworx::bitmapfonts;
 
 image::image(const uint32_t width, const uint32_t height, const uint32_t background) 
     : m_width(width), m_height(height), m_external_data(false)

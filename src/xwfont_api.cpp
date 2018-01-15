@@ -22,7 +22,7 @@
 #include <utf8.h>
 
 namespace xeekworx {
-    namespace bitmap_fonts {
+    namespace bitmapfonts {
 
         static constexpr size_t errorstr_length = 256;
         static char errorstr[errorstr_length] = {};
@@ -31,12 +31,12 @@ namespace xeekworx {
 
 } }
 
-XWFONTAPI const char * xeekworx::bitmap_fonts::get_error(void)
+XWFONTAPI const char * xeekworx::bitmapfonts::get_error(void)
 {
     return errorstr;
 }
 
-XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_font(const xwf_generation_config * config)
+XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font(const xwf_generation_config * config)
 {
     xwf_font *              font = new xwf_font;
     const unsigned int      dpiX = 100, dpiY = 100;
@@ -186,7 +186,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
     }
     catch(std::string e) {
         strncpy(errorstr, e.c_str(), errorstr_length);
-        xeekworx::bitmap_fonts::delete_font(font);
+        xeekworx::bitmapfonts::delete_font(font);
         font = nullptr;
     }
 
@@ -197,7 +197,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
     return font;
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
+XWFONTAPI int xeekworx::bitmapfonts::delete_font(xwf_font * font)
 {
     if (font) {
 
@@ -232,12 +232,12 @@ XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
 
 
 
-XWFONTAPI void xeekworx::bitmap_fonts::set_sample_background(uint32_t background)
+XWFONTAPI void xeekworx::bitmapfonts::set_sample_background(uint32_t background)
 {
     sample_background = background;
 }
 
-namespace xeekworx { namespace bitmap_fonts {
+namespace xeekworx { namespace bitmapfonts {
         static int render_sample_internal(
             const xwf_font * font,
             const uint32_t * text, const int length,
@@ -347,7 +347,7 @@ namespace xeekworx { namespace bitmap_fonts {
     }
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf8(
+XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf8(
     const xwf_font * font,
     const char * text, int length,
     int width, int height, int padding)
@@ -363,7 +363,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf8(
     return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf16(
+XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf16(
     const xwf_font * font,
     const wchar_t * text, int length,
     int width, int height, int padding)
@@ -383,7 +383,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::render_sample_utf16(
     return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf8(
+XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf8(
     const xwf_font * font,
     const char * text, int length,
     int * out_width, int * out_height)
@@ -405,7 +405,7 @@ XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf8(
     return result;
 }
 
-XWFONTAPI int xeekworx::bitmap_fonts::measure_sample_utf16(
+XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf16(
     const xwf_font * font,
     const wchar_t * text, int length,
     int * out_width, int * out_height)

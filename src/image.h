@@ -32,7 +32,7 @@
 #include FT_FREETYPE_H
 
 namespace xeekworx {
-    namespace bitmap_fonts {
+    namespace bitmapfonts {
 
         class image {
         private:
