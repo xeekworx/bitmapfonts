@@ -107,9 +107,9 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
         // ALLOCATE THE NEW FONT:
         font->font_size = config->font_size;
         font->line_height = (face->size->metrics.ascender - face->size->metrics.descender) >> 6;
-        font->start_glyph_index = config->begin_char;
-        font->glyph_indexes = new uint32_t[num_glyphs];
-        font->num_glyph_indexes = num_glyphs;
+        font->start_codepoint = config->begin_char;
+        font->glyph_indices = new uint32_t[num_glyphs];
+        font->num_glyph_indices = num_glyphs;
 
         font->num_glyphs = rects.size();
         font->glyphs = new xwf_glyph[font->num_glyphs];
@@ -117,7 +117,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
         font->num_images = bins.size();
         font->images = new xwf_image[font->num_images];
 
-        for (int i = 0; i < font->num_images; ++i)
+        for (uint32_t i = 0; i < font->num_images; ++i)
         {
             font->images[i].width = bins[i].size.w;
             font->images[i].height = bins[i].size.h;
@@ -163,7 +163,7 @@ XWFONTAPI xeekworx::bitmap_fonts::xwf_font * xeekworx::bitmap_fonts::generate_fo
                 }
 
                 // Glyph data collection:
-                font->glyph_indexes[rect.character - font->start_glyph_index] = glyph_index;
+                font->glyph_indices[rect.character - font->start_codepoint] = glyph_index;
                 font->glyphs[glyph_index].character = rect.character;
                 font->glyphs[glyph_index].flipped = rect.flipped;
                 font->glyphs[glyph_index].source_image = b;
@@ -201,9 +201,9 @@ XWFONTAPI int xeekworx::bitmap_fonts::delete_font(xwf_font * font)
 {
     if (font) {
 
-        if (font->glyph_indexes) {
-            delete[] font->glyph_indexes;
-            font->glyph_indexes = nullptr;
+        if (font->glyph_indices) {
+            delete[] font->glyph_indices;
+            font->glyph_indices = nullptr;
         }
 
         if (font->glyphs) {
@@ -272,6 +272,7 @@ namespace xeekworx { namespace bitmap_fonts {
             //       functions doing some conversion.
             int32_t startX = padding, startY = padding;
             int32_t measure_width = 0, measure_height = 0;
+            uint32_t glyph_index = 0;
             for (int32_t i = 0, x = startX, y = font->font_size + startY, farthestX = 0, farthestY = 0; i < length; ++i) {
                 // Handle new lines first:
                 if (text[i] == (uint32_t) '\n') {
@@ -280,11 +281,17 @@ namespace xeekworx { namespace bitmap_fonts {
                     continue;
                 }
 
-                if (text[i] < font->start_glyph_index ||
-                    text[i] >= font->start_glyph_index + font->num_glyph_indexes)
-                    continue; // TODO: Draw a special glyph for non-existent glyphs
+                // Get the glyph index from the codepoint, if there's no glyph to
+                // get then try to use the ? (question mark) instead.
+                if (text[i] < font->start_codepoint || 
+                    text[i] > font->start_codepoint + font->num_glyph_indices) 
+                {
+                    if (0x0000003f >= font->start_codepoint && 0x0000003f < font->start_codepoint + font->num_glyph_indices)
+                        glyph_index = font->glyph_indices[0x0000003f - font->start_codepoint];
+                    else continue;
+                }
+                else glyph_index = font->glyph_indices[text[i] - font->start_codepoint];
 
-                uint32_t glyph_index = font->glyph_indexes[text[i] - font->start_glyph_index];
                 if (glyph_index >= font->num_glyphs)
                     continue; // TODO: Warn about something wrong with the font
 
