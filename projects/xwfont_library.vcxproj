@@ -333,6 +333,8 @@
     <ClInclude Include="../include/xwfont.h" />
     <ClInclude Include="../src/xwfont_api.h" />
     <ClInclude Include="..\src\image.h" />
+    <ClInclude Include="..\src\renderer_base.h" />
+    <ClInclude Include="..\src\xwfont_types.h" />
     <ClInclude Include="..\third-party\rectpack2D\src\pack.h" />
   </ItemGroup>
   <ItemGroup>
@@ -349,6 +351,7 @@
     </ClCompile>
     <ClCompile Include="../src/xwfont_api.cpp" />
     <ClCompile Include="..\src\image.cpp" />
+    <ClCompile Include="..\src\renderer_base.cpp" />
     <ClCompile Include="..\third-party\rectpack2D\src\pack.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
