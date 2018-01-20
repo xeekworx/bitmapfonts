@@ -7,3 +7,6 @@
 [submodule "third-party/utfcpp"]
 	path = third-party/utfcpp
 	url = https://github.com/nemtrif/utfcpp.git
+[submodule "third-party/sdl2"]
+	path = third-party/sdl2
+	url = https://github.com/xeekworx/sdl2.git

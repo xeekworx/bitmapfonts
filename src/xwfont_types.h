@@ -5,6 +5,8 @@ namespace xeekworx {
     namespace bitmapfonts {
         extern "C" {
 
+            enum class font_style { normal, bold, italic };
+
             struct xwf_generation_config {
                 const char * font_path = nullptr;
                 uint32_t font_size = 14;
