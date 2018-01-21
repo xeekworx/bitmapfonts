@@ -100,7 +100,7 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
         // Pack wants a vector of rect pointers, so extra work...
         for (auto& r : rects) rect_ptrs.push_back(&r);
 
-        if (!pack((rect_xywhf*const*)rect_ptrs.data(), rects.size(), config->page_size, bins)) {
+        if (!pack((rect_xywhf*const*)rect_ptrs.data(), (int)rects.size(), config->page_size, bins)) {
             throw std::string("Failed to pack glyphs");
         }
 
@@ -111,10 +111,10 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
         font->glyph_indices = new uint32_t[num_glyphs];
         font->num_glyph_indices = num_glyphs;
 
-        font->num_glyphs = rects.size();
+        font->num_glyphs = (uint32_t)rects.size();
         font->glyphs = new xwf_glyph[font->num_glyphs];
 
-        font->num_images = bins.size();
+        font->num_images = (uint32_t)bins.size();
         font->images = new xwf_image[font->num_images];
 
         for (uint32_t i = 0; i < font->num_images; ++i)
@@ -352,7 +352,7 @@ XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf8(
     const char * text, int length,
     int width, int height, int padding)
 {
-    length = length < 0 ? std::strlen(text) : length;
+    length = length < 0 ? (int)std::strlen(text) : length;
     std::string in_text(text, text + length);
 
     // Convert it to utf-32
@@ -360,7 +360,7 @@ XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf8(
     std::vector<uint32_t> out_utf32;
     utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
     
-    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
+    return render_sample_internal(font, out_utf32.data(), (int)out_utf32.size(), width, height, padding, false);
 }
 
 XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf16(
@@ -368,7 +368,7 @@ XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf16(
     const wchar_t * text, int length,
     int width, int height, int padding)
 {
-    length = length < 0 ? std::wcslen(text) : length;
+    length = length < 0 ? (int)std::wcslen(text) : length;
     std::wstring in_text(text, text + length);
 
     // Convert it to utf-8
@@ -380,7 +380,7 @@ XWFONTAPI int xeekworx::bitmapfonts::render_sample_utf16(
     std::vector<uint32_t> out_utf32;
     utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
 
-    return render_sample_internal(font, out_utf32.data(), out_utf32.size(), width, height, padding, false);
+    return render_sample_internal(font, out_utf32.data(), (int)out_utf32.size(), width, height, padding, false);
 }
 
 XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf8(
@@ -388,7 +388,7 @@ XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf8(
     const char * text, int length,
     int * out_width, int * out_height)
 {
-    length = length < 0 ? std::strlen(text) : length;
+    length = length < 0 ? (int)std::strlen(text) : length;
     std::string in_text(text, text + length);
 
     // Convert it to utf-32
@@ -397,7 +397,7 @@ XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf8(
     utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
 
     int tmp_w = 0, tmp_h = 0;
-    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, 0, true);
+    int result = render_sample_internal(font, out_utf32.data(), (int)out_utf32.size(), tmp_w, tmp_h, 0, true);
 
     if (out_width) *out_width = tmp_w;
     if (out_height) *out_height = tmp_h;
@@ -410,7 +410,7 @@ XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf16(
     const wchar_t * text, int length,
     int * out_width, int * out_height)
 {
-    length = length < 0 ? std::wcslen(text) : length;
+    length = length < 0 ? (int) std::wcslen(text) : length;
     std::wstring in_text(text, text + length);
 
     // Convert it to utf-8
@@ -423,7 +423,7 @@ XWFONTAPI int xeekworx::bitmapfonts::measure_sample_utf16(
     utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
 
     int tmp_w = 0, tmp_h = 0;
-    int result = render_sample_internal(font, out_utf32.data(), out_utf32.size(), tmp_w, tmp_h, 0, true);
+    int result = render_sample_internal(font, out_utf32.data(), (int) out_utf32.size(), tmp_w, tmp_h, 0, true);
 
     if (out_width) *out_width = tmp_w;
     if (out_height) *out_height = tmp_h;

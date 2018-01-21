@@ -18,7 +18,7 @@ renderer_sdl::~renderer_sdl()
 
 uint32_t renderer_sdl::set_foreground(uint32_t color)
 {
-    return renderer_sdl::set_foreground(color);
+    return renderer_base::set_foreground(color);
 }
 
 uint32_t renderer_sdl::set_background(uint32_t color)
