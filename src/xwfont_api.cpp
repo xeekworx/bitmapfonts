@@ -106,6 +106,8 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
 
         // ALLOCATE THE NEW FONT:
         font->font_size = config->font_size;
+        font->bbox_width = (face->bbox.xMax - face->bbox.xMin) >> 6;
+        font->bbox_height = (face->bbox.yMax - face->bbox.yMin) >> 6;
         font->line_height = (face->size->metrics.ascender - face->size->metrics.descender) >> 6;
         font->start_codepoint = config->begin_char;
         font->glyph_indices = new uint32_t[num_glyphs];

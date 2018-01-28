@@ -332,6 +332,7 @@
   <ItemGroup>
     <ClInclude Include="../include/xwfont.h" />
     <ClInclude Include="../src/xwfont_api.h" />
+    <ClInclude Include="..\src\color.h" />
     <ClInclude Include="..\src\image.h" />
     <ClInclude Include="..\src\renderer_base.h" />
     <ClInclude Include="..\src\renderer_sdl.h" />

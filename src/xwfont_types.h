@@ -37,6 +37,8 @@ namespace xeekworx {
             struct xwf_font {
                 const char * name = nullptr;
                 uint32_t font_size = 0;             // Original font size (em / pixels)
+                uint32_t bbox_width = 0;
+                uint32_t bbox_height = 0;
                 uint32_t line_height = 0;           // Height of a line of text containing any glyph
                 uint32_t start_codepoint = 0;       // Starting unicode codepoint
                 uint32_t num_glyph_indices = 0;     // Number of glyph indices

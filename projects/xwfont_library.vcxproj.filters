@@ -36,6 +36,9 @@
     <ClInclude Include="..\src\renderer_sdl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/xwfont_library\dllmain.cpp">

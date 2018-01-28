@@ -1,5 +1,6 @@
 #include "image.h"
 #include <vector>
+#include <fstream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -25,7 +26,8 @@ image::image(const uint32_t width, const uint32_t height)
     if (width * height) m_data = new uint32_t[width * height];
 }
 
-image::image(const image& source) : image(source.m_width, source.m_height)
+image::image(const image& source) 
+    : image(source.m_width, source.m_height)
 {
     if (source.m_width * source.m_height) 
         std::memcpy(m_data, source.m_data, size_in_bytes());
