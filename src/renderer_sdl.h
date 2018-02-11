@@ -23,9 +23,9 @@ namespace xeekworx {
         protected:
             uintptr_t on_create_image(const uint32_t * data, int32_t width, int32_t height, int32_t channels) override;
             void on_destroy_image(uintptr_t image) override;
-            void on_draw_line(const int32_t x1, const int32_t y1, const int32_t x2, const int32_t y2, const color& clr) override;
-            void on_draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr, const uint32_t thickness = 1) override;
-            void on_fill_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr) override;
+            void on_draw_line(const int32_t x1, const int32_t y1, const int32_t x2, const int32_t y2, const color& clr) const override;
+            void on_draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr, const uint32_t thickness = 1) const override;
+            void on_fill_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr) const override;
             void on_draw_image(
                 uintptr_t source_img,
                 const int32_t source_x, const int32_t source_y,
@@ -34,7 +34,7 @@ namespace xeekworx {
                 const int32_t width, const int32_t height,
                 const color& modulation = color::white,
                 const rotation direction = rotation::none
-            ) override;
+            ) const override;
         };
 
     }

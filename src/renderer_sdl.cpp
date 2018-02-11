@@ -133,7 +133,7 @@ void renderer_sdl::on_destroy_image(uintptr_t image)
     }
 }
 
-void renderer_sdl::on_draw_line(const int32_t x1, const int32_t y1, const int32_t x2, const int32_t y2, const color& clr)
+void renderer_sdl::on_draw_line(const int32_t x1, const int32_t y1, const int32_t x2, const int32_t y2, const color& clr) const
 {
     if (m_sdl_renderer) {
         SDL_SetRenderDrawColor(
@@ -151,7 +151,7 @@ void renderer_sdl::on_draw_line(const int32_t x1, const int32_t y1, const int32_
     }
 }
 
-void renderer_sdl::on_draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr, const uint32_t thickness)
+void renderer_sdl::on_draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr, const uint32_t thickness) const
 {
     if (m_sdl_renderer) {
         SDL_SetRenderDrawColor(
@@ -176,7 +176,7 @@ void renderer_sdl::on_draw_rect(const int32_t x, const int32_t y, const int32_t 
     }
 }
 
-void renderer_sdl::on_fill_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr)
+void renderer_sdl::on_fill_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const color& clr) const
 {
     if (m_sdl_renderer) {
         SDL_SetRenderDrawColor(
@@ -203,7 +203,7 @@ void renderer_sdl::on_draw_image(
     const int32_t width, const int32_t height,
     const color& modulation,
     const rotation direction
-)
+) const
 {
     if (m_sdl_renderer && source_img) {
         SDL_SetTextureColorMod(
