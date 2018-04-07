@@ -6,6 +6,12 @@
 
 using namespace xeekworx::bitmapfonts;
 
+renderer_sdl::renderer_sdl()
+    : m_sdl_renderer(nullptr)
+{
+
+}
+
 renderer_sdl::renderer_sdl(void * sdl_renderer)
     : m_sdl_renderer(sdl_renderer)
 {
@@ -48,6 +54,8 @@ namespace xeekworx {
                     throw std::string(SDL_GetError());
 
                 SDL_PumpEvents();
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                SDL_RenderClear(renderer);
             }
 
             ~renderer_sdl_testenv() {
@@ -67,6 +75,7 @@ bool renderer_sdl::setup_testenv(const int width, const int height, const bool h
 
     try {
         testenv.reset(new renderer_sdl_testenv(width, height, hidden));
+        m_sdl_renderer = testenv->renderer;
     }
     catch (const std::string& e) {
         if (error && error_max) strncpy(error, e.c_str(), error_max);
@@ -80,6 +89,27 @@ bool renderer_sdl::setup_testenv(const int width, const int height, const bool h
     }
 
     return result;
+}
+
+bool renderer_sdl::poll_testenv()
+{
+    SDL_Event e = {};
+    while (SDL_PollEvent(&e)) {
+        switch (e.type) {
+        case SDL_QUIT:
+            return false;
+        case SDL_KEYDOWN:
+            switch (e.key.keysym.sym) {
+            case SDLK_ESCAPE:
+                return false;
+            }
+            break;
+        }
+    }
+
+    SDL_RenderPresent(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer));
+
+    return true;
 }
 
 void renderer_sdl::close_testenv()
@@ -114,7 +144,7 @@ uintptr_t renderer_sdl::on_create_image(const uint32_t * data, int32_t width, in
         return reinterpret_cast<uintptr_t>(nullptr);
     }
     else {
-        texture = SDL_CreateTextureFromSurface((SDL_Renderer*)m_sdl_renderer, surface);
+        texture = SDL_CreateTextureFromSurface(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer), surface);
         SDL_FreeSurface(surface);   // Clean-up the logo surface & buffer, it's no longer needed:
         surface = nullptr;
 

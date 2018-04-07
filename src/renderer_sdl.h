@@ -11,12 +11,14 @@ namespace xeekworx {
             void * m_sdl_renderer = nullptr;
 
         public:
+            renderer_sdl();
             renderer_sdl(void * sdl_renderer);
             virtual ~renderer_sdl();
 
             const xwf_font * set_font(const xwf_font * font, font_style style = font_style::normal) override;
 
             bool setup_testenv(const int width, const int height, const bool hidden, char * error, const size_t error_max) override;
+            bool poll_testenv() override;
             void close_testenv() override;
             bool is_testenv_setup() override;
 

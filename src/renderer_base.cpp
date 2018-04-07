@@ -1,5 +1,6 @@
 #include "renderer_base.h"
 #include "image.h"
+#include <utf8.h>
 
 using namespace xeekworx::bitmapfonts;
 
@@ -65,7 +66,12 @@ const xwf_font * renderer_base::get_font(font_style style) const
     return m_font[static_cast<int>(style)].source_font;
 }
 
-void renderer_base::draw_text_internal(const uint32_t* text, int length, int x, int y, int& width, int& height, int padding, const bool measure_only) const
+void renderer_base::draw_internal(
+    const uint32_t* text, int length, 
+    int x, int y, 
+    int& width, int& height, 
+    int padding, 
+    const bool measure_only) const
 {
     // Sanity checks...
     if (!m_font[static_cast<int>(font_style::normal)].source_font) return;
@@ -82,7 +88,7 @@ void renderer_base::draw_text_internal(const uint32_t* text, int length, int x, 
         return std::div(current_x - start_x, tab_pixels).rem * tab_pixels;
     };
 
-    // RENDERING & MEASUREMENT:
+    // RENDERING & MEASURING:
     // To get the actual width of rendered text we're going to have to simulate
     // drawing the text so that the advance width and bearing are calculated.
 
@@ -101,7 +107,8 @@ void renderer_base::draw_text_internal(const uint32_t* text, int length, int x, 
 
         // Space & (Smart) Tab handling:
         if (text[i] == (uint32_t) ' ') {
-            x += font->bbox_width;
+            //x += font->bbox_width;
+            x += font->font_size / 2U;
             continue;
         }
         else if (text[i] == (uint32_t) '\t') {
@@ -146,10 +153,10 @@ void renderer_base::draw_text_internal(const uint32_t* text, int length, int x, 
                 glyph.source_w,
                 glyph.source_h,
                 x + glyph.bearing_left,
-                y + glyph.bearing_top,
+                y - glyph.bearing_top,
                 glyph.source_w,
                 glyph.source_h,
-                m_foreground,
+                0xFFFFFFFF,
                 glyph.flipped ? rotation::right90degrees : rotation::none
             );
         }
@@ -162,4 +169,85 @@ void renderer_base::draw_text_internal(const uint32_t* text, int length, int x, 
         width = measure_width;
         height = measure_height;
     }
+}
+
+void renderer_base::measure(
+    const wchar_t * text, int length,
+    int * out_width, int * out_height)
+{
+    length = length < 0 ? (int)std::wcslen(text) : length;
+    std::wstring in_text(text, text + length);
+
+    // Convert it to utf-8
+    std::string out_utf8;
+    utf8::utf16to8(in_text.begin(), in_text.end(), std::back_inserter(out_utf8));
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(out_utf8.begin(), out_utf8.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(out_utf8.begin(), end_it, std::back_inserter(out_utf32));
+
+    int tmp_w = 0, tmp_h = 0;
+    draw_internal(out_utf32.data(), (int)out_utf32.size(), 0, 0, tmp_w, tmp_h, 0, true);
+
+    if (out_width) *out_width = tmp_w;
+    if (out_height) *out_height = tmp_h;
+}
+
+void renderer_base::measure(
+    const char * text, int length,
+    int * out_width, int * out_height)
+{
+    length = length < 0 ? (int)std::strlen(text) : length;
+    std::string in_text(text, text + length);
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(in_text.begin(), in_text.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
+
+    int tmp_w = 0, tmp_h = 0;
+    draw_internal(out_utf32.data(), (int)out_utf32.size(), 0, 0, tmp_w, tmp_h, 0, true);
+
+    if (out_width) *out_width = tmp_w;
+    if (out_height) *out_height = tmp_h;
+}
+
+void renderer_base::measure(
+    const wchar_t * text,
+    int * out_width, int * out_height)
+{
+    measure(text, -1, out_width, out_height);
+}
+
+void renderer_base::measure(
+    const char * text,
+    int * out_width, int * out_height)
+{
+    measure(text, -1, out_width, out_height);
+}
+
+void renderer_base::draw(const wchar_t * text, int length, int x, int y, int width, int height, int padding) const
+{
+    length = length < 0 ? (int)std::wcslen(text) : length;
+    std::wstring in_text(text, text + length);
+
+    // Convert it to utf-8
+    std::string out_utf8;
+    utf8::utf16to8(in_text.begin(), in_text.end(), std::back_inserter(out_utf8));
+
+    draw(out_utf8.c_str(), (int)out_utf8.size(), x, y, width, height, padding);
+}
+
+void renderer_base::draw(const char * text, int length, int x, int y, int width, int height, int padding) const
+{
+    length = length < 0 ? (int)std::strlen(text) : length;
+    std::string in_text(text, text + length);
+
+    // Convert it to utf-32
+    std::string::iterator end_it = utf8::find_invalid(in_text.begin(), in_text.end());
+    std::vector<uint32_t> out_utf32;
+    utf8::utf8to32(in_text.begin(), end_it, std::back_inserter(out_utf32));
+
+    draw_internal(out_utf32.data(), (int)out_utf32.size(), x,  y, width, height, padding, false);
 }

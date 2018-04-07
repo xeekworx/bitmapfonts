@@ -35,11 +35,20 @@ namespace xeekworx {
             const std::array<renderer_font, 3> get_fonts() const { return m_font; }
 
             virtual bool setup_testenv(const int width, const int height, const bool hidden, char * error = nullptr, const size_t error_max = 0) = 0;
+            virtual bool poll_testenv() = 0;
             virtual void close_testenv() = 0;
             virtual bool is_testenv_setup() = 0;
 
+            void measure(const wchar_t * text, int length, int * out_width, int * out_height);
+            void measure(const char * text, int length, int * out_width, int * out_height);
+            void measure(const wchar_t * text, int * out_width, int * out_height);
+            void measure(const char * text, int * out_width, int * out_height);
+
+            void draw(const wchar_t * text, int length, int x, int y, int width, int height, int padding = 0) const;
+            void draw(const char * text, int length, int x, int y, int width, int height, int padding = 0) const;
+
         private:
-            void draw_text_internal(const uint32_t* text, int length, int x, int y, int& width, int& height, int padding = 0,  const bool measure_only = false) const;
+            void draw_internal(const uint32_t* text, int length, int x, int y, int& width, int& height, int padding = 0,  const bool measure_only = false) const;
 
         protected:
             enum class rotation { none, left90degrees, right90degrees };
