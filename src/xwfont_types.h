@@ -7,6 +7,8 @@ namespace xeekworx {
 
             enum class font_style { normal, bold, italic };
 
+            enum class text_align { left, center, right };
+
             struct xwf_generation_config {
                 const char * font_path = nullptr;
                 uint32_t font_size = 14;

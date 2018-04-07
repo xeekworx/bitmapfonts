@@ -38,7 +38,7 @@ namespace xeekworx {
             SDL_Window * window = nullptr;
             SDL_Renderer * renderer = nullptr;
 
-            renderer_sdl_testenv(int width, int height, bool hidden) {
+            renderer_sdl_testenv(int width, int height, bool hidden, color backgrd = color::black) {
                 if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
                     throw std::string(SDL_GetError());
 
@@ -54,7 +54,9 @@ namespace xeekworx {
                     throw std::string(SDL_GetError());
 
                 SDL_PumpEvents();
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+                SDL_SetRenderDrawColor(renderer, 
+                    backgrd.r, backgrd.g, backgrd.b, backgrd.a);
                 SDL_RenderClear(renderer);
             }
 
@@ -74,7 +76,7 @@ bool renderer_sdl::setup_testenv(const int width, const int height, const bool h
     bool result = true;
 
     try {
-        testenv.reset(new renderer_sdl_testenv(width, height, hidden));
+        testenv.reset(new renderer_sdl_testenv(width, height, hidden, get_background()));
         m_sdl_renderer = testenv->renderer;
     }
     catch (const std::string& e) {
@@ -108,6 +110,14 @@ bool renderer_sdl::poll_testenv()
     }
 
     SDL_RenderPresent(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer));
+
+    SDL_SetRenderDrawColor(
+        reinterpret_cast<SDL_Renderer *>(m_sdl_renderer), 
+        get_background().r, 
+        get_background().g, 
+        get_background().b, 
+        get_background().a);
+    SDL_RenderClear(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer));
 
     return true;
 }

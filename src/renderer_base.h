@@ -18,6 +18,9 @@ namespace xeekworx {
 
             std::array<renderer_font, 3> m_font;
             color m_foreground, m_background;
+            text_align m_alignment = text_align::left;
+            bool m_textbox = true;
+            bool m_clip = false; // Only valid with m_textbox == true
             uint32_t m_tab_size = 4;
             bool m_smart_tabs = true;
 
@@ -28,11 +31,15 @@ namespace xeekworx {
             virtual color set_foreground(color color);
             virtual color set_background(color color);
             virtual const xwf_font * set_font(const xwf_font * font, font_style style = font_style::normal);
+            virtual void set_textbox_mode(bool enable = true) { m_textbox = enable; }
+            virtual void set_clip_mode(bool enable = true) { m_clip = enable; }
 
             color get_foreground() const { return m_foreground; }
             color get_background() const { return m_background; }
             const xwf_font * get_font(font_style style = font_style::normal) const;
             const std::array<renderer_font, 3> get_fonts() const { return m_font; }
+            bool is_textbox_mode() const { return m_textbox; }
+            bool is_clip_mode() const { return m_clip; }
 
             virtual bool setup_testenv(const int width, const int height, const bool hidden, char * error = nullptr, const size_t error_max = 0) = 0;
             virtual bool poll_testenv() = 0;
@@ -48,6 +55,7 @@ namespace xeekworx {
             void draw(const char * text, int length, int x, int y, int width, int height, int padding = 0) const;
 
         private:
+            int get_line_xpos(const uint32_t* begin, const int length, int x, const int max_width) const;
             void draw_internal(const uint32_t* text, int length, int x, int y, int& width, int& height, int padding = 0,  const bool measure_only = false) const;
 
         protected:
