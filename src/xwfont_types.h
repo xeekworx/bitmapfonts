@@ -40,6 +40,7 @@ namespace xeekworx {
                 uint32_t bbox_width = 0;
                 uint32_t bbox_height = 0;
                 uint32_t line_height = 0;           // Height of a line of text containing any glyph
+                uint32_t space_width = 0;           // The width of the space glyph
                 uint32_t start_codepoint = 0;       // Starting unicode codepoint
                 uint32_t num_glyph_indices = 0;     // Number of glyph indices
                 uint32_t * glyph_indices = nullptr; // Ordered in unicode codepoints

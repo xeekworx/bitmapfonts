@@ -107,15 +107,14 @@ void renderer_base::draw_internal(
 
         // Space & (Smart) Tab handling:
         if (text[i] == (uint32_t) ' ') {
-            //x += font->bbox_width;
-            x += font->font_size / 2U;
+            x += font->space_width;
             continue;
         }
         else if (text[i] == (uint32_t) '\t') {
             if(m_smart_tabs)
-                x += smart_tab(tab_start_x, x, m_tab_size * font->bbox_width);
+                x += smart_tab(tab_start_x, x, m_tab_size * font->space_width);
             else
-                x += font->bbox_width * m_tab_size;
+                x += font->space_width * m_tab_size;
             continue;
         }
 

@@ -85,14 +85,14 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
             if (FT_Get_Char_Index(face, (FT_ULong)n) == 0) 
                 continue; // No glyph image exists for this character
 
-            if((error = FT_Load_Char(face, (FT_ULong)n, FT_LOAD_RENDER)))
+            if ((error = FT_Load_Char(face, (FT_ULong)n, FT_LOAD_BITMAP_METRICS_ONLY)))
                 continue;
 
             rects.push_back(
                 rect_xywhf_glyph(
                     n, 0, 0,
-                    slot->bitmap.width + (config->border_thickness * 2) + (config->padding * 2),
-                    slot->bitmap.rows + (config->border_thickness * 2) + (config->padding * 2)
+                    (slot->metrics.width >> 6) + (config->border_thickness * 2) + (config->padding * 2),
+                    (slot->metrics.height >> 6) + (config->border_thickness * 2) + (config->padding * 2)
                 )
             );
         }
@@ -126,6 +126,11 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
             font->images[i].channels = image::channels;
             font->images[i].data = new uint32_t[font->images[i].width * font->images[i].height];
         }
+
+        // GET SPACE ADVANCE:
+        if ((error = FT_Load_Char(face, (FT_ULong)' ', FT_LOAD_BITMAP_METRICS_ONLY)))
+            font->space_width = font->font_size / 2U;
+        else font->space_width = slot->advance.x >> 6;
 
         // GENERATE FONT (IMAGES & DATA):
         // This is where the actual rendering of the glyphs occurs.
