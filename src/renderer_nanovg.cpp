@@ -287,19 +287,18 @@ void renderer_nanovg::on_draw_image(
         int original_w, original_h;
         nvgImageSize(vg, static_cast<int>(source_img), &original_w, &original_h);
         NVGpaint paint_img = nvgImagePattern(
-            vg, (float)(source_x * ax), (float)(source_y * ay), (float)original_w*ax, (float)original_h*ay, 0.f, static_cast<int>(source_img), 1.f
+            vg, (float)(-source_x * ax), (float)(-source_y * ay), (float)original_w*ax, (float)original_h*ay, 0.f, static_cast<int>(source_img), 1.f
         );
-
 
         nvgRotate(vg, angle);
 
         nvgBeginPath(vg);
         nvgRect(vg, 0.f, 0.f, (float)width, (float)height);
         paint_img.innerColor = nvgRGBA(
-            get_foreground().r, 
-            get_foreground().g, 
-            get_foreground().b, 
-            get_foreground().a);
+            modulation.r,
+            modulation.g,
+            modulation.b,
+            modulation.a);
         nvgFillPaint(vg, paint_img);
         nvgFill(vg);
 
