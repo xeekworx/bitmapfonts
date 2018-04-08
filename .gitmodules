@@ -10,3 +10,6 @@
 [submodule "third-party/sdl2"]
 	path = third-party/sdl2
 	url = https://github.com/xeekworx/sdl2.git
+[submodule "third-party/nanovg"]
+	path = third-party/nanovg
+	url = https://github.com/memononen/nanovg.git

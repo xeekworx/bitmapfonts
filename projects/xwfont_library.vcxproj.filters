@@ -24,9 +24,6 @@
     <ClInclude Include="..\third-party\rectpack2D\src\pack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\xwfont_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -39,12 +36,15 @@
     <ClInclude Include="..\src\color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\basic_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\renderer_nanovg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/xwfont_library\dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="../src/test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="../src/xwfont_api.cpp">
@@ -53,13 +53,16 @@
     <ClCompile Include="..\third-party\rectpack2D\src\pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\image.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\renderer_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\renderer_sdl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\basic_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\renderer_nanovg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
