@@ -14,7 +14,7 @@
 #include <memory>
 
 #include "xwfont_api.h"
-#include "image.h"
+#include "basic_renderer.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -27,7 +27,7 @@ namespace xeekworx {
         static constexpr size_t errorstr_length = 256;
         static char errorstr[errorstr_length] = {};
 
-        static uint32_t sample_background = image::transparent;
+        static uint32_t sample_background = basic_renderer::transparent;
 
 } }
 
@@ -123,7 +123,7 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
         {
             font->images[i].width = bins[i].size.w;
             font->images[i].height = bins[i].size.h;
-            font->images[i].channels = image::channels;
+            font->images[i].channels = basic_renderer::channels;
             font->images[i].data = new uint32_t[font->images[i].width * font->images[i].height];
         }
 
@@ -138,7 +138,7 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
         for (uint32_t b = 0, glyph_index = 0; b < bins.size(); ++b)
         {
             // Create a temporary image object that has rendering capability:
-            image_ptr page_image = std::make_shared<image>(bins[b].size.w, bins[b].size.h, config->background);
+            basic_renderer_ptr page_image = std::make_shared<basic_renderer>(bins[b].size.w, bins[b].size.h, config->background);
 
             // Iterate each glyph / rect pointer within the bin
             for (uint32_t i=0; i < bins[b].rects.size(); ++i, ++glyph_index)
@@ -154,7 +154,7 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
                         rect.x + config->border_thickness + config->padding,
                         rect.y + config->border_thickness + config->padding,
                         config->foreground,
-                        image::rotation::left90degrees);
+                        basic_renderer::rotation::left90degrees);
                 else
                     page_image->draw_bitmap(
                         &slot->bitmap,
@@ -259,16 +259,16 @@ namespace xeekworx { namespace bitmapfonts {
 
             // Convert the font's images / pages into image objects so they're easier
             // to work with:
-            std::vector<image> images; // No images will be here with measure_only
+            std::vector<basic_renderer> images; // No images will be here with measure_only
             if (!measure_only) {
                 for (unsigned i = 0; i < font->num_images; ++i) {
-                    images.push_back(image(font->images[i].data, font->images[i].width, font->images[i].height, true));
+                    images.push_back(basic_renderer(font->images[i].data, font->images[i].width, font->images[i].height, true));
                 }
             }
 
             // Create sample image, only if not just measuring:
-            std::unique_ptr<image> sample_image;
-            if (!measure_only) sample_image = std::make_unique<image>(width + padding * 2, height + padding * 2, sample_background);
+            std::unique_ptr<basic_renderer> sample_image;
+            if (!measure_only) sample_image = std::make_unique<basic_renderer>(width + padding * 2, height + padding * 2, sample_background);
 
             // RENDERING & MEASUREMENTS:
             // To get the actual width of rendered text we're going to have to simulate
@@ -324,7 +324,7 @@ namespace xeekworx { namespace bitmapfonts {
                             glyph.source_h,
                             x + glyph.bearing_left,
                             y - glyph.bearing_top,
-                            image::rotation::right90degrees
+                            basic_renderer::rotation::right90degrees
                         );
                     }
                     else

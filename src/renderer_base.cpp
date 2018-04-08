@@ -1,5 +1,4 @@
 #include "renderer_base.h"
-#include "image.h"
 #include <utf8.h>
 
 #define XWF_DRAW_GUIDES 1

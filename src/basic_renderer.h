@@ -1,9 +1,7 @@
 #pragma once
 /*
-    This is the image buffer management and rendering for the Xeekworx Font API, 
-    but eventually rendering will be moved to a derivable class so that rendering 
-    is possible in OpenGL, NanoVG, and perhaps even SDL. When this happens I'll 
-    delete relevant parts of this this comment.
+    This is the basic renderer & image buffer management for the Xeekworx Font 
+    API. This renderer is used for font generation only.
 
     NOTE:
     The internal pixel format is RGBA, so specifying colors in parameters as 
@@ -15,13 +13,15 @@
         For opaque blue use:                0x0000FFFF
         For transparent / no color use:     0x00000000 or 0xFFFFFF00
 
-    Do not use HTML colors without alpha channels or the bit-math will not give 
-    you desired results, since at least on x86 bits are right to left for integers.
+    Do not use HTML colors without alpha channels or the bit-math will not 
+    give you desired results, since at least on x86 bits are right to left for 
+    integers.
 
-    When using save functions the pixels are converted to ABGR so that the buffer 
-    will be bitmap compatible for saving to files or passing to other apis that 
-    assume it's bitmap data. This also means the image constructor that takes 
-    a pixel buffer as a parameter expects those pixels to be in the ABGR format.
+    When using save functions the pixels are converted to ABGR so that the 
+    buffer will be bitmap compatible for saving to files or passing to other 
+    apis that assume it's bitmap data. This also means the image constructor 
+    that takes a pixel buffer as a parameter expects those pixels to be in the
+    ABGR format.
 */
 
 #include <stdint.h>
@@ -34,7 +34,7 @@
 namespace xeekworx {
     namespace bitmapfonts {
 
-        class image {
+        class basic_renderer {
         private:
 
             uint32_t * m_data = nullptr;
@@ -48,12 +48,12 @@ namespace xeekworx {
             static constexpr uint32_t black = 0x000000FF;
             static constexpr uint32_t channels = 4;
 
-            image(const uint32_t width, const uint32_t height, const uint32_t background);
-            image(const uint32_t width, const uint32_t height);
-            image(const image& source);
-            image(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert = true);
-            image(const FT_Bitmap* ftbitmap, const uint32_t foreground = black, const uint32_t background = transparent);
-            ~image();
+            basic_renderer(const uint32_t width, const uint32_t height, const uint32_t background);
+            basic_renderer(const uint32_t width, const uint32_t height);
+            basic_renderer(const basic_renderer& source);
+            basic_renderer(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert = true);
+            basic_renderer(const FT_Bitmap* ftbitmap, const uint32_t foreground = black, const uint32_t background = transparent);
+            ~basic_renderer();
 
             int32_t width() const { return m_width; }
             int32_t height() const { return m_height; }
@@ -75,11 +75,11 @@ namespace xeekworx {
             void draw_vline(const int32_t x, const int32_t y1, const int32_t y2, const uint32_t color);
             void draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const uint32_t thickness, const uint32_t color);
             void draw_bitmap(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground);
-            void draw_bitmap(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y);
+            void draw_bitmap(const basic_renderer& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y);
 
             enum class rotation { left90degrees, right90degrees };
             void draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground, rotation direction);
-            void draw_bitmap_rotated(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y, rotation direction);
+            void draw_bitmap_rotated(const basic_renderer& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y, rotation direction);
 
             bool save(const std::string& to_file) const;
             bool save(uint32_t * to_buffer, const size_t size_in_bytes) const;
@@ -88,10 +88,11 @@ namespace xeekworx {
 
             static uint32_t blend_colors(const uint32_t foreground, const uint32_t background);
 
-            struct pixel_abgr; // Forward declaration for pixel_rgba's constructor
+            struct pixel_abgr;
 
             struct pixel_rgba {
-                // There is concern that this might not work the same on non x86 based processors
+                // There is concern that this might not work the same on 
+                // non-x86 based processors
                 uint8_t r, g, b, a;
                 pixel_rgba() {}
                 pixel_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : r(r), g(g), b(b), a(a) {}
@@ -112,7 +113,8 @@ namespace xeekworx {
             };
 
             struct pixel_abgr {
-                // There is concern that this might not work the same on non x86 based processors
+                // There is concern that this might not work the same on 
+                // non-x86 based processors
                 uint8_t b, g, r, a;
                 pixel_abgr() {}
                 pixel_abgr(uint8_t b, uint8_t g, uint8_t r, uint8_t a) : b(b), g(g), r(r), a(a) {}
@@ -134,7 +136,7 @@ namespace xeekworx {
 
         };
         
-        typedef std::shared_ptr<image> image_ptr;
+        typedef std::shared_ptr<basic_renderer> basic_renderer_ptr;
 
     }
 }

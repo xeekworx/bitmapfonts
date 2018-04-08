@@ -1,4 +1,4 @@
-#include "image.h"
+#include "basic_renderer.h"
 #include <vector>
 #include <fstream>
 
@@ -11,7 +11,7 @@
 
 using namespace xeekworx::bitmapfonts;
 
-image::image(const uint32_t width, const uint32_t height, const uint32_t background) 
+basic_renderer::basic_renderer(const uint32_t width, const uint32_t height, const uint32_t background) 
     : m_width(width), m_height(height), m_external_data(false)
 {
     if (width * height) {
@@ -20,20 +20,20 @@ image::image(const uint32_t width, const uint32_t height, const uint32_t backgro
     }
 }
 
-image::image(const uint32_t width, const uint32_t height)
+basic_renderer::basic_renderer(const uint32_t width, const uint32_t height)
     : m_width(width), m_height(height), m_external_data(false)
 {
     if (width * height) m_data = new uint32_t[width * height];
 }
 
-image::image(const image& source) 
-    : image(source.m_width, source.m_height)
+basic_renderer::basic_renderer(const basic_renderer& source) 
+    : basic_renderer(source.m_width, source.m_height)
 {
     if (source.m_width * source.m_height) 
         std::memcpy(m_data, source.m_data, size_in_bytes());
 }
 
-image::image(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert) 
+basic_renderer::basic_renderer(uint32_t * source_pixels, const uint32_t width, const uint32_t height, const bool copy_convert) 
     : m_width(width), m_height(height), m_external_data(!copy_convert)
 {
     if (copy_convert) {
@@ -46,8 +46,8 @@ image::image(uint32_t * source_pixels, const uint32_t width, const uint32_t heig
     else m_data = source_pixels;
 }
 
-image::image(const FT_Bitmap* ftbitmap, const uint32_t foreground, const uint32_t background)
-    : image(ftbitmap->width, ftbitmap->rows)
+basic_renderer::basic_renderer(const FT_Bitmap* ftbitmap, const uint32_t foreground, const uint32_t background)
+    : basic_renderer(ftbitmap->width, ftbitmap->rows)
 {
     for (int32_t i = 0; i < size(); ++i)
         m_data[i] = blend_colors(
@@ -56,7 +56,7 @@ image::image(const FT_Bitmap* ftbitmap, const uint32_t foreground, const uint32_
         );
 }
 
-image::~image()
+basic_renderer::~basic_renderer()
 {
     if (m_data && !m_external_data) {
         delete[] m_data;
@@ -64,13 +64,13 @@ image::~image()
     }
 }
 
-void image::clear(const uint32_t background)
+void basic_renderer::clear(const uint32_t background)
 {
     if (!empty()) std::fill_n(m_data, size(), background);
 }
 
 // Takes html colors and spits out BGRA
-uint32_t image::blend_colors(const uint32_t foreground, const uint32_t background)
+uint32_t basic_renderer::blend_colors(const uint32_t foreground, const uint32_t background)
 {
     const pixel_rgba dest(background);
     const pixel_rgba source(foreground);
@@ -87,7 +87,7 @@ uint32_t image::blend_colors(const uint32_t foreground, const uint32_t backgroun
     return result;
 }
 
-void image::draw_hline(const int32_t x1, const int32_t x2, const int32_t y, const uint32_t color)
+void basic_renderer::draw_hline(const int32_t x1, const int32_t x2, const int32_t y, const uint32_t color)
 {
     if (y >= 0 && y < m_height)
         for (int32_t x = x1; x < x2; ++x)
@@ -95,7 +95,7 @@ void image::draw_hline(const int32_t x1, const int32_t x2, const int32_t y, cons
                 to_point(x, y, blend_colors(color, from_point(x, y)));
 }
 
-void image::draw_vline(const int32_t x, const int32_t y1, const int32_t y2, const uint32_t color)
+void basic_renderer::draw_vline(const int32_t x, const int32_t y1, const int32_t y2, const uint32_t color)
 {
     if (x >= 0 && x < m_width)
         for (int32_t y = y1; y < y2; ++y)
@@ -103,7 +103,7 @@ void image::draw_vline(const int32_t x, const int32_t y1, const int32_t y2, cons
                 to_point(x, y, blend_colors(color, from_point(x, y)));
 }
 
-void image::draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const uint32_t thickness, const uint32_t color)
+void basic_renderer::draw_rect(const int32_t x, const int32_t y, const int32_t w, const int32_t h, const uint32_t thickness, const uint32_t color)
 {
     // left
     for (uint32_t t = 0; t < thickness; ++t)
@@ -122,7 +122,7 @@ void image::draw_rect(const int32_t x, const int32_t y, const int32_t w, const i
         draw_hline(x + thickness, x + w - thickness, (y + h - 1) - t, color);
 }
 
-void image::draw_bitmap(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y)
+void basic_renderer::draw_bitmap(const basic_renderer& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y)
 {
     int32_t  dest_cx, dest_cy, source_cx, source_cy;
     int32_t  x_max = x + source_w;
@@ -144,16 +144,16 @@ void image::draw_bitmap(const image& source_img, const int32_t source_x, const i
     }
 }
 
-void image::draw_bitmap(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground)
+void basic_renderer::draw_bitmap(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground)
 {
     draw_bitmap(
-        image(ftbitmap, foreground, image::transparent),
+        basic_renderer(ftbitmap, foreground, basic_renderer::transparent),
         0, 0, ftbitmap->width, ftbitmap->rows,
         x, y
     );
 }
 
-void image::draw_bitmap_rotated(const image& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y, rotation direction)
+void basic_renderer::draw_bitmap_rotated(const basic_renderer& source_img, const int32_t source_x, const int32_t source_y, const int32_t source_w, const int32_t source_h, const int32_t x, const int32_t y, rotation direction)
 {
     int32_t dest_cx, dest_cy, source_cx, source_cy;
     const int32_t dest_x_max = x + source_h;
@@ -195,17 +195,17 @@ void image::draw_bitmap_rotated(const image& source_img, const int32_t source_x,
     }
 }
 
-void image::draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground, rotation direction)
+void basic_renderer::draw_bitmap_rotated(const FT_Bitmap* ftbitmap, const int32_t x, const int32_t y, const uint32_t foreground, rotation direction)
 {
     draw_bitmap_rotated(
-        image(ftbitmap, foreground, image::transparent), 
+        basic_renderer(ftbitmap, foreground, basic_renderer::transparent), 
         0, 0, ftbitmap->width, ftbitmap->rows, 
         x, y, 
         direction
     );
 }
 
-bool image::save(const std::string& to_file) const
+bool basic_renderer::save(const std::string& to_file) const
 {
     // PNG expects a ABGR format (RGBA in reverse)
     std::vector<uint32_t> converted(m_data, m_data + size());
@@ -221,7 +221,7 @@ bool image::save(const std::string& to_file) const
     else return false;
 }
 
-bool image::save(uint32_t * to_buffer, const size_t size_in_bytes) const
+bool basic_renderer::save(uint32_t * to_buffer, const size_t size_in_bytes) const
 {
     if (size_in_bytes != this->size_in_bytes() || !to_buffer) return false;
 

@@ -1,5 +1,4 @@
 #include "renderer_sdl.h"
-#include "image.h"
 #include <string>
 #include <memory>
 #include <SDL.h>
