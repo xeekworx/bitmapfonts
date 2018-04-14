@@ -129,25 +129,25 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\lib\$(PlatformShortName)\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(ProjectName)\$(Configuration)\$(PlatformShortName)\</IntDir>
-    <TargetName>$(ProjectName)d</TargetName>
+    <TargetName>$(ProjectName)_debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\$(PlatformShortName)\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(ProjectName)\$(Configuration)\$(PlatformShortName)\</IntDir>
-    <TargetName>$(ProjectName)d</TargetName>
+    <TargetName>$(ProjectName)_dbg</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\lib\$(PlatformShortName)\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(ProjectName)\$(Configuration)\$(PlatformShortName)\</IntDir>
-    <TargetName>$(ProjectName)d</TargetName>
+    <TargetName>$(ProjectName)_debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\$(PlatformShortName)\</OutDir>
     <IntDir>$(ProjectDir)intermediate\$(ProjectName)\$(Configuration)\$(PlatformShortName)\</IntDir>
-    <TargetName>$(ProjectName)d</TargetName>
+    <TargetName>$(ProjectName)_dbg</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -186,9 +186,10 @@
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\Debug Multithreaded;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;imm32.lib;version.lib;opengl32.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\;..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype28MTd.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference />
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
@@ -209,7 +210,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform);..\lib\$(PlatformShortName)\$(Configuration)\;..\third-party\sdl2\VisualC\Win32\Debug [Static];%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype28MTd.lib;winmm.lib;imm32.lib;version.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>..\lib\$(PlatformShortName)\$(TargetName)_shared.lib</ImportLibrary>
+      <ImportLibrary>..\lib\$(PlatformShortName)\$(TargetName)shared.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -229,9 +230,10 @@
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\Debug Multithreaded;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;imm32.lib;version.lib;opengl32.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\;..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype28MTd.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference />
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
@@ -252,7 +254,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform);..\lib\$(PlatformShortName)\$(Configuration)\;..\third-party\sdl2\VisualC\x64\Debug [Static];%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype28MTd.lib;winmm.lib;imm32.lib;version.lib;SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ImportLibrary>..\lib\$(PlatformShortName)\$(TargetName)_shared.lib</ImportLibrary>
+      <ImportLibrary>..\lib\$(PlatformShortName)\$(TargetName)shared.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -276,9 +278,10 @@
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\Release Multithreaded;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;imm32.lib;version.lib;opengl32.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\;..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype28MT.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference />
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
@@ -326,12 +329,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\Release Multithreaded;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <Lib />
     <Lib>
-      <AdditionalDependencies>winmm.lib;imm32.lib;version.lib;opengl32.lib;SDL2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\third-party\freetype-2.8\objs\vc2017\$(Platform)\;..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype28MT.lib</AdditionalDependencies>
     </Lib>
-    <Lib>
-      <AdditionalLibraryDirectories>..\lib\$(PlatformShortName)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
+    <ProjectReference />
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
@@ -367,6 +370,7 @@
     <ClInclude Include="..\src\renderer_base.h" />
     <ClInclude Include="..\src\renderer_nanovg.h" />
     <ClInclude Include="..\src\renderer_sdl.h" />
+    <ClInclude Include="..\src\xwfglad\xwfglad.h" />
     <ClInclude Include="..\src\xwfont_types.h" />
     <ClInclude Include="..\third-party\rectpack2D\src\pack.h" />
   </ItemGroup>
@@ -377,6 +381,21 @@
     <ClCompile Include="..\src\renderer_base.cpp" />
     <ClCompile Include="..\src\renderer_nanovg.cpp" />
     <ClCompile Include="..\src\renderer_sdl.cpp" />
+    <ClCompile Include="..\src\xwfglad\xwfglad.c" />
+    <ClCompile Include="..\third-party\nanovg\src\nanovg.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|Win32'">_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release [Shared]|Win32'">_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug [Shared]|x64'">_CRT_SECURE_NO_WARNINGS;_DEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release [Shared]|x64'">_CRT_SECURE_NO_WARNINGS;NDEBUG;XWFONTLIBRARY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="..\third-party\rectpack2D\src\pack.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include <vector>
 #include "renderer_base.h"
 
 namespace xeekworx {
@@ -11,18 +10,8 @@ namespace xeekworx {
             void * m_nvgcontext = nullptr;
 
         public:
-            renderer_nanovg();
-            renderer_nanovg(void * nvgcontext);
+            renderer_nanovg(void * nvgcontext); // Not exposing NanoVG types
             virtual ~renderer_nanovg();
-
-            const xwf_font * set_font(const xwf_font * font, font_style style = font_style::normal) override;
-
-            bool setup_testenv(const int width, const int height, const bool hidden, char * error, const size_t error_max) override;
-            bool poll_testenv() override;
-            void close_testenv() override;
-            bool is_testenv_setup() override;
-            void nanovg_begin();
-            void nanovg_end();
 
         protected:
             uintptr_t on_create_image(const uint32_t * data, int32_t width, int32_t height, int32_t channels) override;

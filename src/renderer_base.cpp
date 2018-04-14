@@ -75,9 +75,9 @@ color renderer_base::set_background(color color)
 const xwf_font * renderer_base::set_font(const xwf_font * font, font_style style)
 {
     const xwf_font * old_font = m_font[static_cast<int>(style)].source_font;
+    renderer_font new_font;
 
     if (font) {
-        renderer_font new_font;
         new_font.source_font = font;
         new_font.renderer_images.resize(font->num_images);
 
@@ -94,12 +94,12 @@ const xwf_font * renderer_base::set_font(const xwf_font * font, font_style style
                 return nullptr;
             }
         }
-
-        for (auto image : m_font[static_cast<int>(style)].renderer_images)
-            on_destroy_image(image);
-
-        m_font[static_cast<int>(style)] = new_font;
     }
+
+    for (auto image : m_font[static_cast<int>(style)].renderer_images)
+        on_destroy_image(image);
+
+    m_font[static_cast<int>(style)] = new_font;
 
     return old_font;
 }

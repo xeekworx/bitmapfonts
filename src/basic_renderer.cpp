@@ -49,7 +49,7 @@ basic_renderer::basic_renderer(uint32_t * source_pixels, const uint32_t width, c
 basic_renderer::basic_renderer(const FT_Bitmap* ftbitmap, const uint32_t foreground, const uint32_t background)
     : basic_renderer(ftbitmap->width, ftbitmap->rows)
 {
-    for (int32_t i = 0; i < size(); ++i)
+    for (size_t i = 0; i < size(); ++i)
         m_data[i] = blend_colors(
             pixel_rgba(foreground, ftbitmap->buffer[i]),
             background

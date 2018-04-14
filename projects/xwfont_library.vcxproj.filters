@@ -42,6 +42,9 @@
     <ClInclude Include="..\src\renderer_nanovg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\xwfglad\xwfglad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/xwfont_library\dllmain.cpp">
@@ -63,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\renderer_nanovg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xwfglad\xwfglad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\third-party\nanovg\src\nanovg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,15 +4,8 @@
 
 #ifdef XWFONT_RENDERER_SDL
 #   include "../src/renderer_sdl.h"
-namespace xeekworx {
-    namespace bitmapfonts {
-        using renderer = renderer_sdl;
-} }
-#elif defined XWFONT_RENDERER_NANOVG
+#endif
+
+#ifdef XWFONT_RENDERER_NANOVG
 #   include "../src/renderer_nanovg.h"
-namespace xeekworx {
-    namespace bitmapfonts {
-        using renderer = renderer_nanovg;
-    }
-}
 #endif

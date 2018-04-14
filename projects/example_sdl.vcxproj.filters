@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Third Party Files">
+      <UniqueIdentifier>{6008d172-d3e1-4ecd-8c6f-4a3af27e6e11}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\examples\example_sdl.cpp" />
+  </ItemGroup>
+</Project>

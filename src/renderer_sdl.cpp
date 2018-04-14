@@ -1,15 +1,8 @@
 #include "renderer_sdl.h"
-#include <string>
-#include <memory>
+#define SDL_MAIN_HANDLED 1
 #include <SDL.h>
 
 using namespace xeekworx::bitmapfonts;
-
-renderer_sdl::renderer_sdl()
-    : m_sdl_renderer(nullptr)
-{
-
-}
 
 renderer_sdl::renderer_sdl(void * sdl_renderer)
     : m_sdl_renderer(sdl_renderer)
@@ -23,112 +16,6 @@ renderer_sdl::~renderer_sdl()
         for (auto image : font.renderer_images)
             on_destroy_image(image);
     }
-}
-
-const xwf_font * renderer_sdl::set_font(const xwf_font * font, font_style style)
-{
-    return renderer_base::set_font(font, style);
-}
-
-namespace xeekworx {
-    namespace bitmapfonts {
-
-        struct renderer_sdl_testenv {
-            SDL_Window * window = nullptr;
-            SDL_Renderer * renderer = nullptr;
-
-            renderer_sdl_testenv(int width, int height, bool hidden, color backgrd = color::black) {
-                if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
-                    throw std::string(SDL_GetError());
-
-                if ((window = SDL_CreateWindow(
-                    "xeekworx::bitmapfonts::test_environment",
-                    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                    width, height,
-                    hidden ? SDL_WINDOW_HIDDEN : SDL_WINDOW_SHOWN
-                )) == 0)
-                    throw std::string(SDL_GetError());
-
-                if ((renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)) == 0)
-                    throw std::string(SDL_GetError());
-
-                SDL_PumpEvents();
-
-                SDL_SetRenderDrawColor(renderer, 
-                    backgrd.r, backgrd.g, backgrd.b, backgrd.a);
-                SDL_RenderClear(renderer);
-            }
-
-            ~renderer_sdl_testenv() {
-                if (renderer) SDL_DestroyRenderer(renderer);
-                if (window) SDL_DestroyWindow(window);
-                SDL_Quit();
-            }
-        };
-
-        static std::auto_ptr<renderer_sdl_testenv> testenv; // auto_ptr so that if close_testenv isn't called eventually
-    }
-}
-
-bool renderer_sdl::setup_testenv(const int width, const int height, const bool hidden, char * error, const size_t error_max)
-{
-    bool result = true;
-
-    try {
-        testenv.reset(new renderer_sdl_testenv(width, height, hidden, get_background()));
-        m_sdl_renderer = testenv->renderer;
-    }
-    catch (const std::string& e) {
-        if (error && error_max) strncpy(error, e.c_str(), error_max);
-        result = false;
-        close_testenv();
-    }
-    catch (...) {
-        if (error && error_max) error[0] = 0;
-        result = false;
-        close_testenv();
-    }
-
-    return result;
-}
-
-bool renderer_sdl::poll_testenv()
-{
-    SDL_Event e = {};
-    while (SDL_PollEvent(&e)) {
-        switch (e.type) {
-        case SDL_QUIT:
-            return false;
-        case SDL_KEYDOWN:
-            switch (e.key.keysym.sym) {
-            case SDLK_ESCAPE:
-                return false;
-            }
-            break;
-        }
-    }
-
-    SDL_RenderPresent(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer));
-
-    SDL_SetRenderDrawColor(
-        reinterpret_cast<SDL_Renderer *>(m_sdl_renderer), 
-        get_background().r, 
-        get_background().g, 
-        get_background().b, 
-        get_background().a);
-    SDL_RenderClear(reinterpret_cast<SDL_Renderer *>(m_sdl_renderer));
-
-    return true;
-}
-
-void renderer_sdl::close_testenv()
-{
-    if(is_testenv_setup()) testenv.reset();
-}
-
-bool renderer_sdl::is_testenv_setup()
-{
-    return (testenv.get() ? true : false);
 }
 
 uintptr_t renderer_sdl::on_create_image(const uint32_t * data, int32_t width, int32_t height, int32_t channels)

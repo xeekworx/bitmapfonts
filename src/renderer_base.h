@@ -41,11 +41,6 @@ namespace xeekworx {
             bool is_textbox_mode() const { return m_textbox; }
             bool is_clip_mode() const { return m_clip; }
 
-            virtual bool setup_testenv(const int width, const int height, const bool hidden, char * error = nullptr, const size_t error_max = 0) = 0;
-            virtual bool poll_testenv() = 0;
-            virtual void close_testenv() = 0;
-            virtual bool is_testenv_setup() = 0;
-
             void measure(const wchar_t * text, int length, int * out_width, int * out_height);
             void measure(const char * text, int length, int * out_width, int * out_height);
             void measure(const wchar_t * text, int * out_width, int * out_height);
