@@ -100,7 +100,7 @@ XWFONTAPI xeekworx::bitmapfonts::xwf_font * xeekworx::bitmapfonts::generate_font
         // Pack wants a vector of rect pointers, so extra work...
         for (auto& r : rects) rect_ptrs.push_back(&r);
 
-        if (!pack((rect_xywhf*const*)rect_ptrs.data(), (int)rects.size(), config->page_size, bins)) {
+        if (!pack((rect_xywhf*const*)rect_ptrs.data(), (int)rects.size(), config->page_size, true, bins)) {
             throw std::string("Failed to pack glyphs");
         }
 
